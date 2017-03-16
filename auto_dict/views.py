@@ -30,6 +30,9 @@ def index(request):
         html = urlopen(url)
         text = html.read()
 
+        if type(text) != type("string"):
+            text = text.decode('utf-8')
+
         index = text.find("def")
         index = text.find("dt", index)
         index = text.find(":", index)
