@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Search a Word!</title>
+</head>
+<body>
+ <form action="{% url 'auto_dict:index' %}" method="post"> 
+ 	{% csrf_token %}
+ 	<input type="text" name="word" id="info">
+ 	<input type="submit" name="">
+ </form>
+ {% if word %}
+ {{ word }} {{ definition }}
+ {% endif %}
+</body %>
+</html>
