@@ -19,6 +19,8 @@ def make_url(word):
 
     url = "http://www.dictionaryapi.com/api/v1/references/collegiate/xml/"
     url += word + "?key=" + secret_key
+
+
     return url
 
 
@@ -53,7 +55,7 @@ def index(request):
         # if text is not a string,
         # (i.e., if it's bytes),
         # convert it to unicode string
-        if isinstance(text, type("string")):
+        if not isinstance(text, type("string")):
             text = text.decode('utf-8')
 
         # find the word definition start
