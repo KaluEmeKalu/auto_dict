@@ -5,7 +5,10 @@ try:
 except:
     from urllib.request import urlopen
 
-
+from .models import (
+    Word,
+    WordSearch
+)
 
 
 # your index view.
@@ -13,25 +16,29 @@ except:
 # 1)provides the logic
 # for your webpage,
 # 2) passes information
-# from and to your 
+# from and to your
 # users (with get and post)
 # requests,
-# and 
+# and
 # 3 tells the webpage which
 # html template to use.
 def word_search(request):
 
-
     # we check to see if a post request
-    # has been made. 
-    # if so, we need to look for the 
+    # has been made.
+    # if so, we need to look for the
     # information passed along to the
     # input named "word". Use that information
     # to search the dictionaryAPI and return to
     # our user the definition of the word
     if request.method == 'POST':
-        word = request.POST.get('word', '').strip()
+        word = request.POST.get('word', '')
+        word_search = WordSearch(search=word)
+        word_search.save()
+
+        word = word.strip()
         url = make_url(word)
+        import pdb; pdb.set_trace();
         html = urlopen(url)
         text = html.read()
 
@@ -53,12 +60,18 @@ def word_search(request):
 
         context = {'word': word, 'definition': my_def}
 
-        # this renders the template with some 
+        word_obj = Word(word=word,
+                        definition=my_def,
+                        full_json_response=text,
+                        )
+        word_obj.save()
+
+        # this renders the template with some
         # return a context dictionary
         # that passes our templates
         # some pieces of information
         # (here, the definition
-        # of the word that the user 
+        # of the word that the user
         # pass us in the post request)
         return render(request, 'auto_dict/word_search.html', context)
 
