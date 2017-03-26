@@ -1,3 +1,5 @@
+from django.conf import settings
+
 # a helper function
 # to make your url
 def make_url(word):

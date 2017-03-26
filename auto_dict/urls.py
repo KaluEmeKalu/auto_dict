@@ -6,6 +6,6 @@ app_name = 'auto_dict'
 
 from . import views
 urlpatterns = [
-    url(r'^dashboard/', views.dashboard, name='dashboard'),
+    url(r'^word_search/', views.word_search, name='word_search'),
     url(r'^$', views.index, name="index"),
 ]

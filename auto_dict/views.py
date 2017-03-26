@@ -1,5 +1,4 @@
 from django.shortcuts import render
-from django.conf import settings
 from .make_url import make_url
 try:
     from urllib2 import urlopen
@@ -20,7 +19,7 @@ except:
 # and 
 # 3 tells the webpage which
 # html template to use.
-def index(request):
+def word_search(request):
 
 
     # we check to see if a post request
@@ -61,10 +60,10 @@ def index(request):
         # (here, the definition
         # of the word that the user 
         # pass us in the post request)
-        return render(request, 'auto_dict/old_index.html', context)
+        return render(request, 'auto_dict/word_search.html', context)
 
-    return render(request, 'auto_dict/old_index.html')
+    return render(request, 'auto_dict/word_search.html')
 
 
-def dashboard(request):
+def index(request):
     return render(request, 'auto_dict/index.html')

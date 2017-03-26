@@ -1,6 +1,6 @@
 {% extends 'auto_dict/base.html' %}
 {% load static %}
-
+{% block title %}Word Search{% endblock %}
 {% block page-wrapper %}
 
 
@@ -8,8 +8,15 @@
             <div id="page-inner">
                 <div class="row">
                     <div class="col-md-12">
-                     <h2>Blank Page</h2>   
+                     <h2>Word Search</h2>   
                         <h5>Welcome Jhon Deo , Love to see you back. </h5>
+                         <form action="{% url 'auto_dict:word_search' %}" method="post"> 
+                            {% csrf_token %}
+                            <input type="text" name="word" id="info">
+                            <input type="submit" name="">
+                         </form>
+                         {{ word}}
+                         {{ definition }}
                        
                     </div>
                 </div>
