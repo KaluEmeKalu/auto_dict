@@ -57,13 +57,15 @@ def word_search(request):
         # select the string containing the definition
         my_def = text[start_index:end_index]
 
-        context = {'word': word, 'definition': my_def}
+        
 
         word_obj = Word(word=word,
                         definition=my_def,
                         full_json_response=text,
                         )
         word_obj.save()
+
+        context = {'word': word_obj}
 
         # this renders the template with some
         # return a context dictionary
