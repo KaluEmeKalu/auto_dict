@@ -38,7 +38,6 @@ def word_search(request):
 
         word = word.strip()
         url = make_url(word)
-        import pdb; pdb.set_trace();
         html = urlopen(url)
         text = html.read()
 
