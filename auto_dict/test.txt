@@ -1,0 +1,6 @@
+Front	Back	Example Usage	Part of speech	Syllables	Synonyms	Antonyms	Other usages	Pronunciation	Tags
+
+Gadget	A thing that does something	a computer is a gadget.	noun	Ga*dget	thing, jawn	void, lack	used to mean tech device	gaaa*jett	tech, science, short_words
+
+glasses	A thign to put to see better	a computer is a gadget.	noun	Ga*dget	thing, jawn	void, lack	used to mean tech device	gaaa*jett	tech, science, short_words
+

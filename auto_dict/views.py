@@ -1,27 +1,12 @@
 from django.shortcuts import render
 from django.conf import settings
+from .make_url import make_url
 try:
     from urllib2 import urlopen
 except:
     from urllib.request import urlopen
 
 
-# a helper function
-# to make your url
-def make_url(word):
-    # MAKE SURE YOU SET A
-    # DICTIONARY_API_SECRET_KEY VARIABLE
-    # IN YOUR SETTINGS.PY FILE
-    # DICTIONARY_API_SECRET_KEY = "YOUR SECRET KEY!!"
-    # FOR EXAMPLE
-    # DICTIONARY_API_SECRET_KEY = "075n4nh-j53b-78b3-5439-8j56fgn3dce"
-    secret_key = settings.DICTIONARY_API_SECRET_KEY
-
-    url = "http://www.dictionaryapi.com/api/v1/references/collegiate/xml/"
-    url += word + "?key=" + secret_key
-
-
-    return url
 
 
 # your index view.
@@ -48,7 +33,6 @@ def index(request):
     if request.method == 'POST':
         word = request.POST.get('word', '').strip()
         url = make_url(word)
-
         html = urlopen(url)
         text = html.read()
 
@@ -77,6 +61,10 @@ def index(request):
         # (here, the definition
         # of the word that the user 
         # pass us in the post request)
-        return render(request, 'auto_dict/index.html', context)
+        return render(request, 'auto_dict/old_index.html', context)
 
+    return render(request, 'auto_dict/old_index.html')
+
+
+def dashboard(request):
     return render(request, 'auto_dict/index.html')
