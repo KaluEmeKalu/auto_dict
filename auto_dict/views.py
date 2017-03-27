@@ -17,38 +17,50 @@ from .models import (
 
 
 
-
 def make_anki_text(request):
-
     all_words = Word.objects.all()
     anki_header = Word.objects.first().anki_header()
-    filename = "anki_doc.txt"
-
-    file = open(filename, "w")
-    file.write(anki_header)
+    content = ''
+    content += anki_header 
 
     for word in all_words:
         text = word.make_string()
-        file.write(text)
+        content += text
 
-    file.close()
-    file_path = os.path.exists(os.getcwd() + '/auto_dict/' + filename)
-    # if os.path.exists(file_path):
-    #     with open(file_path, 'rb') as fh:
-    #         response = HttpResponse(fh.read(), content_type="application/vnd.ms-excel")
-    #         response['Content-Disposition'] = 'inline; filename=' + os.path.basename(file_path)
-    #         return response
-    # else:
-    #     raise Http404
+    return HttpResponse(content, content_type='text/plain')
 
-    if os.path.exists(file_path):
-        f = open(file_path, 'r')
-        myfile = File(f)
-        response = HttpResponse(myfile, content_type='text/plain')
-        response['Content-Disposition'] = 'attachment; filename=' + 'anki_doc.txt'
-        return response
-    else:
-        raise Http404
+
+# def make_anki_text(request):
+
+#     all_words = Word.objects.all()
+#     anki_header = Word.objects.first().anki_header()
+#     filename = "anki_doc.txt"
+
+#     file = open(filename, "w")
+#     file.write(anki_header)
+
+#     for word in all_words:
+#         text = word.make_string()
+#         file.write(text)
+
+#     file.close()
+#     file_path = os.path.exists(os.getcwd() + '/auto_dict/' + filename)
+#     # if os.path.exists(file_path):
+#     #     with open(file_path, 'rb') as fh:
+#     #         response = HttpResponse(fh.read(), content_type="application/vnd.ms-excel")
+#     #         response['Content-Disposition'] = 'inline; filename=' + os.path.basename(file_path)
+#     #         return response
+#     # else:
+#     #     raise Http404
+
+#     if os.path.exists(file_path):
+#         f = open(file_path, 'r')
+#         myfile = File(f)
+#         response = HttpResponse(myfile, content_type='text/plain')
+#         response['Content-Disposition'] = 'attachment; filename=' + 'anki_doc.txt'
+#         return response
+#     else:
+#         raise Http404
 
 
 
