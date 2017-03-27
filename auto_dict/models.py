@@ -134,7 +134,10 @@ class Word(Model):
         syllables = get_html_contents(json, 'hw')
         self.syllables = syllables
 
-        self.save()
+        try:
+            self.save()
+        except:
+            pass
         return json
 
     def anki_header(self):
