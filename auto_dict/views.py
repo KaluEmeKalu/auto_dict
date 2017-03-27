@@ -27,6 +27,10 @@ def make_anki_text(request):
         text = word.make_string()
         content += text
 
+    with open("anki_doc.txt", 'w') as f:
+        f.write(content)
+        f.close()
+
     return HttpResponse(content, content_type='text/plain')
 
 
@@ -81,6 +85,10 @@ def make_anki_text(request):
 # html template to use.
 def word_search(request):
 
+
+    words = Word.objects.all()
+    context = {'words': words}
+
     # we check to see if a post request
     # has been made.
     # if so, we need to look for the
@@ -100,13 +108,13 @@ def word_search(request):
         # before we do the search
         # we check if the word
         # already exists
-        words = Word.objects.all()
         for w in words:
             if w.word == word:
                 print("word already searched " * 100)
+                context['word'] = w
                 return render(request,
                               'auto_dict/word_search.html',
-                              {'word': w})
+                              context)
 
         html = urlopen(url)
         text = html.read()
@@ -149,8 +157,11 @@ def word_search(request):
         # pass us in the post request)
         return render(request, 'auto_dict/word_search.html', context)
 
-    return render(request, 'auto_dict/word_search.html')
-
+    return render(request, 'auto_dict/word_search.html', context)
 
 def index(request):
     return render(request, 'auto_dict/index.html')
+
+
+def tables(request):
+    return render(request, 'auto_dict/table.html')
