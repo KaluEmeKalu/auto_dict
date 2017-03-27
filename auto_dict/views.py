@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from .make_url import make_url
+from .models import Word
 try:
     from urllib2 import urlopen
 except:
@@ -38,6 +39,19 @@ def word_search(request):
 
         word = word.strip()
         url = make_url(word)
+
+
+        # before we do the search
+        # we check if the word
+        # already exists
+        words = Word.objects.all()
+        for w in words:
+            if w.word == word:
+                print("word already searched " * 100)
+                return render(request,
+                              'auto_dict/word_search.html',
+                              {'word': w})
+
         html = urlopen(url)
         text = html.read()
 
@@ -63,6 +77,9 @@ def word_search(request):
                         definition=my_def,
                         full_json_response=text,
                         )
+        word_obj.save()
+
+        word_obj.get_info()
         word_obj.save()
 
         context = {'word': word_obj}

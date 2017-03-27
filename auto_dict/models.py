@@ -48,6 +48,41 @@ def menu_upload_location(instance, filename):
     return "{}, Menu, {}".format(instance.venue.name, filename)
 
 
+def get_html_contents(html_string, tag, index=None, many=None):
+
+    if many:
+        pass
+        # content = get_html_contents(html_string, tag)
+        # content_list = [content]
+
+        # content_index = html_string.find(content)
+        # next_index = html_string.find(tag, next_index)
+
+        # while next_index != -1:
+        #     temp_content = get_html_contents(html_string, tag,
+        #                                      index=next_index)
+        #     content_list.append(temp_content)
+        #     content_index = html_string.find(content)
+        #     next_index = html_string.find(tag, content_index)
+
+        # return content_list
+    else:
+        try:    
+            open_tag = "<{}>".format(tag)
+            close_tag = "</{}>".format(tag)
+
+            if index:
+                start = index
+            else:
+                start = 0
+            start_index = html_string.find(open_tag, start) + len(open_tag)
+            end_index = html_string.find(close_tag, start_index)
+            content = html_string[start_index:end_index]
+            return content
+        except:
+            return None
+
+
 class Tag(Model):
     word = CharField(max_length=60)
     user = ForeignKey(User, related_name="tags", blank=True, null=True)
@@ -62,17 +97,45 @@ class Word(Model):
     definition = TextField(default="No Definition Entry")
     example = TextField(default="No Example Entry")
     origin = CharField(max_length=280, default="No Origin Entry")
-    part_of_speech = CharField(max_length=180, default="No Part Of Speech Entry")
+    part_of_speech = CharField(max_length=180, null=True, blank=True, default="No Part Of Speech Entry")
     syllables = CharField(max_length=180, default="No Syllables Entry")
     synonyms = CharField(max_length=180, default="No Synonyms Entry")
     antonyms = CharField(max_length=180, default="No Antonyms Entry")
-    other_usages = CharField(max_length=180, default="No Other Usages Entry")
-    pronunciation = CharField(max_length=180, default="No Pronunciation Entry")
+    other_usages = CharField(max_length=180, null=True, blank=True, default="No Other Usages Entry")
+    pronunciation = CharField(max_length=180, null=True, blank=True, default="No Pronunciation Entry")
     tags = CharField(max_length=180, default="No Tags Entry")
     audio = CharField(max_length=180, default="No Audio Entry")
     full_json_response = TextField(blank=True, null=True)
     timestamp = DateTimeField(
         editable=False, auto_now_add=True, auto_now=False)
+
+
+    def get_info(self):
+        json = self.full_json_response
+
+        #get prounciation
+        pronunciation = get_html_contents(json, 'wpr')
+        self.pronunciation = pronunciation
+
+        # get part of speech
+        part_of_speech = get_html_contents(json, 'fl')
+        self.part_of_speech = part_of_speech
+
+        # get origin
+        origin = get_html_contents(json, 'et')
+        self.origin = origin
+
+        #get other_usages
+        other_usages = get_html_contents(json, 'uro')
+        if other_usages:
+            self.other_usages = other_usages
+
+         #get syllables
+        syllables = get_html_contents(json, 'hw')
+        self.syllables = syllables
+
+        self.save()
+        return json
 
     def anki_header(self):
         text = "Front\tBack\tExample\tOrigin\tUsage\t"

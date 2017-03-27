@@ -31,6 +31,12 @@
                                       </li>
                                       <li class=""><a href="#full_json_response" data-toggle="tab">Full JSON Response</a>
                                       </li>
+                                      <li class=""><a href="#syllables" data-toggle="tab">Syllables</a>
+                                      </li>
+                                      <li class=""><a href="#part_of_speech" data-toggle="tab">Part of Speech</a>
+                                      </li>
+                                      <li class=""><a href="#pronunciation" data-toggle="tab">Phonetic Prounciation</a>
+                                      </li>
                                   </ul>
 
                                   <div class="tab-content">
@@ -47,8 +53,20 @@
                                           <p>{{word.origin}}</p>
                                       </div>
                                       <div class="tab-pane fade" id="full_json_response">
-                                          <h4>Full JSON Response: {{word.word}}</h4>
+                                          <h4>Full Json Response: {{word.word}}</h4>
                                           <p>{{word.full_json_response}}</p>
+                                      </div>
+                                      <div class="tab-pane fade" id="syllables">
+                                          <h4>Syllables: {{word.word}}</h4>
+                                          <p>{{word.syllables}}</p>
+                                      </div>
+                                      <div class="tab-pane fade" id="part_of_speech">
+                                          <h4>Part of Speech: {{word.word}}</h4>
+                                          <p>{{word.part_of_speech}}</p>
+                                      </div>
+                                      <div class="tab-pane fade" id="pronunciation">
+                                          <h4>Phonetic Pronunciation: {{word.word}}</h4>
+                                          <p>{{word.pronunciation}}</p>
                                       </div>
                                   </div>
                               </div>
