@@ -1,6 +1,9 @@
 from django.shortcuts import render
 from .make_url import make_url
 from .models import Word
+from django.http import HttpResponse, Http404
+
+import os
 try:
     from urllib2 import urlopen
 except:
@@ -10,6 +13,36 @@ from .models import (
     Word,
     WordSearch
 )
+
+
+
+
+def make_anki_text(request):
+
+    all_words = Word.objects.all()
+    anki_header = Word.objects.first().anki_header()
+    filename = "anki_doc.txt"
+
+    file = open(filename, "w")
+    file.write(anki_header)
+
+    for word in all_words:
+        file.write(word.get_info())
+
+    file.close()
+    file_path = os.path.exists(os.getcwd() + '/auto_dict/' + filename)
+    if os.path.exists(file_path):
+        with open(file_path, 'rb') as fh:
+            response = HttpResponse(fh.read(), content_type="application/vnd.ms-excel")
+            response['Content-Disposition'] = 'inline; filename=' + os.path.basename(file_path)
+            return response
+    else:
+        raise Http404
+
+
+
+
+    # return render(request, 'auto_dict/index.html')
 
 
 # your index view.
