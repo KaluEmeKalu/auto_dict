@@ -28,7 +28,8 @@ def make_anki_text(request):
     file.write(anki_header)
 
     for word in all_words:
-        file.write(word.get_info())
+        text = word.make_string()
+        file.write(text)
 
     file.close()
     file_path = os.path.exists(os.getcwd() + '/auto_dict/' + filename)
@@ -43,7 +44,7 @@ def make_anki_text(request):
     if os.path.exists(file_path):
         f = open(file_path, 'r')
         myfile = File(f)
-        response = HttpResponse(myfile, content_type='application/vnd.ms-excel')
+        response = HttpResponse(myfile, content_type='text/plain')
         response['Content-Disposition'] = 'attachment; filename=' + 'anki_doc.txt'
         return response
     else:
