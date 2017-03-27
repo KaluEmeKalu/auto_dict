@@ -1,3 +1,4 @@
+from django.core.files import File
 from django.shortcuts import render
 from .make_url import make_url
 from .models import Word
@@ -31,11 +32,20 @@ def make_anki_text(request):
 
     file.close()
     file_path = os.path.exists(os.getcwd() + '/auto_dict/' + filename)
+    # if os.path.exists(file_path):
+    #     with open(file_path, 'rb') as fh:
+    #         response = HttpResponse(fh.read(), content_type="application/vnd.ms-excel")
+    #         response['Content-Disposition'] = 'inline; filename=' + os.path.basename(file_path)
+    #         return response
+    # else:
+    #     raise Http404
+
     if os.path.exists(file_path):
-        with open(file_path, 'rb') as fh:
-            response = HttpResponse(fh.read(), content_type="application/vnd.ms-excel")
-            response['Content-Disposition'] = 'inline; filename=' + os.path.basename(file_path)
-            return response
+        f = open(file_path, 'r')
+        myfile = File(f)
+        response = HttpResponse(myfile, content_type='application/vnd.ms-excel')
+        response['Content-Disposition'] = 'attachment; filename=' + 'anki_doc.txt'
+        return response
     else:
         raise Http404
 
