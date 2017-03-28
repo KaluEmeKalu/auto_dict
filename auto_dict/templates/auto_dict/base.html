@@ -51,9 +51,9 @@ Hello {{user.username}}!
                     {% if user.is_authenticated %}
 
                         {% if user.user_profile.profile_pic.image.url %}
-                            <img class="my_pointer" onclick="loadChangeUserPic()" data-toggle="modal" data-target="#load_change_user_pic" src="{{user.user_profile.profile_pic.image.url}}" class="user-image img-responsive"/>
+                            <img class="user_image my_pointer" onclick="loadChangeUserPic()" data-toggle="modal" data-target="#load_change_user_pic" src="{{user.user_profile.profile_pic.image.url}}" class="user-image img-responsive"/>
                         {% else %}
-                            <img class="my_pointer" onclick="loadChangeUserPic()" data-toggle="modal" data-target="#load_change_user_pic" src="{% static 'auto_dict/img/find_user.png' %}" class="user-image img-responsive"/>
+                            <img class="user_image my_pointer" onclick="loadChangeUserPic()" data-toggle="modal" data-target="#load_change_user_pic" src="{% static 'auto_dict/img/find_user.png' %}" class="user-image img-responsive"/>
                         {% endif %}
                     {% else %}
                         <img src="{% static 'auto_dict/img/find_user.png' %}" class="user-image img-responsive"/>

@@ -1,5 +1,4 @@
 {% load widget_tweaks %}
-ddd
 <form action="{% url 'auto_dict:login' %}" method="post">
 	    	{% csrf_token %}
 		    {{ form.username|attr:"placeholder:Username"  }}
