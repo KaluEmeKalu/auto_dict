@@ -1,8 +1,13 @@
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
 from django.core.files import File
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from .make_url import make_url
 from .models import Word
 from django.http import HttpResponse, Http404
+from . forms import UserLoginForm, CreateUserForm, UserImageForm
+from django.views.generic import View
+from django.contrib import messages
 
 import os
 try:
@@ -165,3 +170,106 @@ def index(request):
 
 def tables(request):
     return render(request, 'auto_dict/table.html')
+
+
+class UserLoginView(View):
+    form_class = UserLoginForm
+    template_name = 'auto_dict/login.html'
+
+    def get(self, request):
+        form = self.form_class(None)
+        return render(request, self.template_name, {'form': form})
+
+    def post(self, request):
+        username = request.POST['username']
+        password = request.POST['password']
+
+        user = authenticate(username=username, password=password)
+
+        if user is not None:
+
+            if user.is_active:
+                login(request, user)
+                return redirect('auto_dict:index')
+            else:
+                # An inactive account was used - no logging in!
+                messages.error(request, 'Your account is disable')
+                form = self.form_class(None)
+                context = {'form': form}
+                return render(request, self.template_name, context)
+
+        messages.error(request, 'Your username or password did not match')
+        form = self.form_class(None)
+        context = {'form': form}
+        return render(request, self.template_name, context)
+
+class RegisterView(View):
+
+    form_class = CreateUserForm
+    template_name = 'auto_dict/register.html'
+
+    def get(self, request):
+        form = self.form_class(None)
+        return render(request, self.template_name, {'form': form})
+
+    def post(self, request):
+        form = self.form_class(request.POST)
+
+        if form.is_valid():
+
+            user = form.save(commit=False)
+            username = form.cleaned_data['username']
+            password = form.cleaned_data['password']
+
+            user.set_password(password)
+            user.save()
+
+            # returns User objects if credentilas are correct
+            user = authenticate(username=username, password=password)
+
+            if user is not None:
+
+                if user.is_active:
+                    login(request, user)
+                    # change this. This is error
+                    return redirect('auto_dict:index')
+
+        return render(request, self.template_name, {'form': form})
+
+
+@login_required(login_url='/auto_dict/login/')
+def user_logout(request):
+    logout(request)
+    return redirect('auto_dict:index')
+
+
+@login_required
+def change_user_image(request):
+    if request.method == 'POST':
+        form = UserImageForm(request.POST, request.FILES)
+
+        if form.is_valid():
+
+            #if there is no user_profile create one
+            try:
+                user_profile = request.user.user_profile
+            except Exception as the_exception:
+                if the_exception.__str__() == "User has no user_profile.":
+                    a = UserProfile(user=request.user)
+                    a.save()
+                    user_profile = a
+
+
+            user_image = form.save(commit=False)
+            user_image.save()
+
+
+            user_profile.all_profile_pics.add(user_image)
+            user_profile.profile_pic = user_image
+            user_profile.save()            
+
+
+            return redirect('auto_dict:index')
+
+
+    return render(request, 'auto_dict/change_user_pic.html', {'form': UserImageForm()})

@@ -1,0 +1,5 @@
+<form action="{% url 'auto_dict:change_user_image' %}"  enctype="multipart/form-data" method="post">
+  {% csrf_token %}
+  {{form}}
+  <input type="submit" value="Submit" name="Submit">
+</form>

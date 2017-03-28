@@ -1,0 +1,17 @@
+{% load widget_tweaks %}
+ddd
+
+
+<form action="{% url 'auto_dict:register' %}" method="post">
+    {% csrf_token %}
+    {{ form.username|attr:"placeholder:Username"  }}
+    {{ form.email|attr:"placeholder:Email"  }}
+    {{ form.password|attr:"placeholder:Password"  }}
+    <br/>
+    <!-- <input type="submit" value="Register" name="Submit" class="submit" id="submit" > -->
+    <button type="submit">Register</button>
+    <br/>
+
+    <a class="input message error alignCenter" href="{% url 'auto_dict:login' %}">Already have an account? Login</a>
+          
+</form>

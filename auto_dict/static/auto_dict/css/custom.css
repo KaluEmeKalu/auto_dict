@@ -1,3 +1,116 @@
+/*CUSTOM KALU CODE!!*/
+
+.my_pointer {
+  cursor: pointer;
+}
+/*********************************
+0000000000000000000000000000000000
+************0000000000000000000000
+Add Class***0000000000000000000000
+************0000000000000000000000
+************0000000000000000000000
+0000000000000000000000000000000000
+**********************************/
+
+.form .topbar .input.error.message {
+  border-width: 0;
+}
+
+.alignCenter {
+  text-align: center;
+}
+
+
+.whatTimeP {
+  /*add some margin above what Time to separate
+    from what day
+  */
+  margin-top: 15px;
+}
+
+.day_input.input.day1 {
+  /*start off class register with no days of class shown*/
+  display: none;
+}
+
+.form .topbar .input.day_input {
+  display: none;
+}
+
+img.ui-datepicker-trigger {
+  /*show cursor for  datepicker calendar image*/
+  max-width: 30px;
+  cursor: pointer;
+}
+
+.timeSelect {
+  /*decrease width for time input*/
+  max-width: 65px
+}
+
+
+.ui-datepicker.ui-widget.ui-widget-content.ui-helper-clearfix.ui-corner-all {
+  /*JQueryUI calendar date picker styles*/
+  width: 300px;
+}
+
+.class_form,
+.student_form {
+  /*So that student & class form starts off hidden*/
+  display: none;
+}
+
+.form .topbar form {
+  /*So that all things in form are visible*/
+  color: rgba(255, 255, 255, 0.4);
+  position: relative;
+  font-size: : 3rem;
+}
+
+.form .topbar form input.input {
+  transition: 1s;
+}
+
+.form .topbar form input.input.date_hidden,
+.form .topbar form input.input.age_hidden {
+  /*So that age input is hidden by default*/
+  max-height: 0;
+  border: none;
+  margin: 0;
+  overflow: hidden;
+  padding: 0;
+  
+}
+
+/*.form .topbar form input.input.age_hidden.age_visible {
+    border-radius: 6px;
+    padding: 10px 20px;
+    margin-bottom: 25px;
+    max-height: 50px
+    overflow: auto;
+    transition: 1s;
+
+}
+*/
+
+a {
+  text-decoration: none;
+}
+
+
+
+/*********************************
+0000000000000000000000000000000000
+******************0000000000000000
+End Add Class*****0000000000000000
+******************0000000000000000
+******************0000000000000000
+0000000000000000000000000000000000
+**********************************/
+
+
+/*END CUSTOM KALU CODE!*/
+
 
 /*=============================================================
     Authour URI: www.binarycart.com

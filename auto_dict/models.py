@@ -1,7 +1,7 @@
 from django.db.models import Model
 from django.contrib.auth.models import User
 from django.contrib.humanize.templatetags.humanize import naturaltime
-
+from django.db.models.signals import post_save
 
 # Create your models here.
 from django.db.models import (
@@ -23,6 +23,10 @@ from imagekit.models import ImageSpecField, ProcessedImageField
 from imagekit.processors import ResizeToFill, Transpose
 
 from django.db import models
+
+
+def image_upload_location(instance, filename):
+    return "{}".format(filename)
 
 
 class IntegerRangeField(IntegerField):
@@ -245,42 +249,28 @@ class Review(Model):
     def time_ago(self):
         return naturaltime(self.timestamp)
 
-class Image(Model):
-    timestamp = models.DateTimeField(
-        editable=False, auto_now_add=True, auto_now=False, null=True, blank=True)
+class Image(models.Model):
+    # user = OneToOneField(User, related_name="image", null=True, blank=True)
+    # content_object = GenericForeignKey('content_type', 'object_id')
+    image = ProcessedImageField(processors=[  # ResizeToFill(
+        # 100, 50),
+        Transpose()],
+        upload_to=image_upload_location,
+        null=True,
+        blank=True,
+        format='JPEG',
+        options={'quality': 60})
+    my_namespace = CharField(
+        default="Image", max_length=128, null=True, blank=True)
+    timestamp = DateTimeField(editable=False, auto_now_add=True,
+                              auto_now=False, null=True, blank=True)
 
-    user = ForeignKey(User, related_name="user_images",null=True,
-                      blank=True,)
-    user_image = ProcessedImageField(processors=[  # ResizeToFill(
-                                # 100, 50),
-                                Transpose()],
-                                upload_to=userprofile_upload_location,
-                                null=True,
-                                blank=True,
-                                format='JPEG',
-                                options={'quality': 60})
-
-    venue = ForeignKey(Venue, related_name="venue_images",null=True,
-                       blank=True,)
-    venue_image = ProcessedImageField(processors=[  # ResizeToFill(
-                                # 100, 50),
-                                Transpose()],
-                                upload_to=venue_upload_location,
-                                null=True,
-                                blank=True,
-                                format='JPEG',
-                                options={'quality': 60})
-
-    menu_image = ProcessedImageField(processors=[  # ResizeToFill(
-                                # 100, 50),
-                                Transpose()],
-                                upload_to=menu_upload_location,
-                                null=True,
-                                blank=True,
-                                format='JPEG',
-                                options={'quality': 60})
-
-    my_namespace = CharField(default="Image", max_length=128, null=True, blank=True)
+    def __str__(self):
+        try:
+            my_user = self.user.username
+        except:
+            my_user = "Null User"
+        return '{} Submitted Image on {}'.format(my_user, self.timestamp)
 
     def time_ago(self):
         return naturaltime(self.timestamp)
@@ -303,12 +293,34 @@ class Image(Model):
             pass
         return "no string"
 
+def make_all_user_profiles():
+
+    users = User.objects.all()
+
+    for user in users:
+        try:
+            user.user_profile
+        except:
+            u = UserProfile(user=user)
+            u.save()
+
         
-class UserProfile(Model):
-    user = OneToOneField(User, related_name="user_profile")
-    can_add_venue = BooleanField(default=True)
-    is_banned = BooleanField(default=False)
-    profile_pic = ForeignKey(Image, null=True, blank=True, related_name="user_profiles")
+class UserProfile(models.Model):
+    user = models.OneToOneField(User, related_name="user_profile")
+    profile_pic = models.ForeignKey('Image', null=True, blank=True, related_name='user_profile')
+    all_profile_pics = models.ManyToManyField('Image', blank=True, related_name="user_profiles")
 
     def __str__(self):
         return '{} Profile'.format(self.user.username)
+
+
+def create_user_profile(sender, **kwargs):
+    """Creates a User Profile upon creation of User"""
+    user = kwargs['instance']
+    if kwargs['created']:
+        user_profile = UserProfile(user=user)
+        user_profile.save()
+
+
+
+post_save.connect(create_user_profile, sender=User)

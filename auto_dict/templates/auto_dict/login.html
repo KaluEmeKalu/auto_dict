@@ -1,0 +1,14 @@
+{% load widget_tweaks %}
+ddd
+<form action="{% url 'auto_dict:login' %}" method="post">
+	    	{% csrf_token %}
+		    {{ form.username|attr:"placeholder:Username"  }}
+		    {{ form.password|attr:"placeholder:Password"  }}
+		    <br/>
+		    <!-- <input type="submit" value="Register" name="Submit" class="submit" id="submit" > -->
+		    <button type="submit">Sign In</button>
+		    <br/>
+
+		    <a class="input message error alignCenter" href="">Don't have an account? Register</a>
+		  
+</form>

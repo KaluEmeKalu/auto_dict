@@ -30,12 +30,11 @@ class UserImageAdmin(admin.ModelAdmin):
 
 
 class ImageAdmin(admin.ModelAdmin):
-    list_display = ('my_namespace', 'user_image', 'user',
-                    'venue_image', 'venue', 'menu_image')
+    list_display = ('image', 'timestamp')
 
 
 class UserProfileAdmin(admin.ModelAdmin):
-    list_display = ('user', 'profile_pic', 'can_add_venue', 'is_banned')
+    list_display = ('user', 'profile_pic', )
 
 
 class WordAdmin(admin.ModelAdmin):
