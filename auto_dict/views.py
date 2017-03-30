@@ -21,6 +21,16 @@ from .models import (
 )
 
 
+def bytes_to_string(bytes_obj):
+    # if text is not a string,
+    # (i.e., if it's bytes),
+    # convert it to unicode string
+    if not isinstance(bytes_obj, type("string")):
+        bytes_obj = bytes_obj.decode('utf-8')
+    else:
+        return bytes_obj
+
+
 
 def make_anki_text(request):
     all_words = Word.objects.all()
@@ -120,8 +130,7 @@ def get_xml_string(word):
     # if text is not a string,
     # (i.e., if it's bytes),
     # convert it to unicode string
-    if not isinstance(xml_string, type("string")):
-        xml_string = xml_string.decode('utf-8')
+    xml_string = bytes_to_string(xml_string)
 
     return xml_string
 
@@ -220,6 +229,7 @@ def word_search(request):
 
         if len(request.FILES) != 0:
             text = request.FILES['file'].read()
+            text = bytes_to_string(text)
             wordlist = get_wordlist_from_textstring(text)
             found_words = make_multiple_word_models(wordlist)
             context['found_words'] = found_words
