@@ -2,6 +2,7 @@ from django.db.models import Model
 from django.contrib.auth.models import User
 from django.contrib.humanize.templatetags.humanize import naturaltime
 from django.db.models.signals import post_save
+import re
 
 # Create your models here.
 from django.db.models import (
@@ -14,10 +15,15 @@ from django.db.models import (
     BooleanField,
     TextField,
     OneToOneField,
-    ManyToManyField
+    ManyToManyField,
+    FileField
 
 
 )
+
+def audio_upload_location(instance, filename):
+    return "audio/{}".format(filename)
+
 
 from imagekit.models import ImageSpecField, ProcessedImageField
 from imagekit.processors import ResizeToFill, Transpose
@@ -51,6 +57,22 @@ def userprofile_upload_location(instance, filename):
 def menu_upload_location(instance, filename):
     return "{}, Menu, {}".format(instance.venue.name, filename)
 
+
+def remove_all_word_html_tags():
+    words = Word.objects.all()
+
+    for word in words:
+        word.origin = re.sub('<[^<]+?>', '', word.origin)
+
+        word.part_of_speech = re.sub('<[^<]+?>', '', word.part_of_speech)
+        word.syllables = re.sub('<[^<]+?>', '', word.syllables)
+        word.synonyms = re.sub('<[^<]+?>', '', word.synonyms)
+        word.antonyms = re.sub('<[^<]+?>', '', word.antonyms)
+        word.other_usages = re.sub('<[^<]+?>', '', word.other_usages)
+        word.pronunciation = re.sub('<[^<]+?>', '', word.pronunciation)
+        word.tags = re.sub('<[^<]+?>', '', word.tags)
+
+        word.save()
 
 def get_html_contents(html_string, tag, index=None, many=None):
 
@@ -93,6 +115,18 @@ class Tag(Model):
 
     def __str__(self):
         return self.word
+
+
+class AudioRecording(Model):
+    file = FileField(upload_to=audio_upload_location)
+    user = ForeignKey(User, related_name="audio_recordings",
+                      blank=True, null=True)
+    title = CharField(max_length=80, null=True, blank=True)
+    timestamp = DateTimeField(editable=False, auto_now_add=True,
+                              auto_now=False, null=True, blank=True)
+
+    def __str__(self):
+        return self.title
 
 
 class Word(Model):
@@ -145,8 +179,10 @@ class Word(Model):
         return json
 
     def anki_header(self):
-        text = "Front\tBack\tExample\tOrigin\tUsage\t"
+        text = "Front\tBack\t"
         text += "Part of speech\tSyllables\t"
+        text += "Origin\t"
+        text += "Used in sentence\t"
         text += "Synonyms\tAntonyms\t"
         text += "Other usages\tPronunciation\tTags\n\n"
         return text
@@ -156,14 +192,14 @@ class Word(Model):
     def make_string(self):
         word = self
         entry = "{w.word}\t{w.definition}\t".format(w=word)
-        entry += "{w.example}\t".format(w=word)
-        entry += "{w.origin}\t".format(w=word)
         entry += "{w.part_of_speech}\t".format(w=word)
         entry += "{w.syllables}\t".format(w=word)
+        entry += "{}\t".format(word.origin.encode('utf8'))
+        entry += "{w.example}\t".format(w=word)
         entry += "{w.synonyms}\t".format(w=word)
         entry += "{w.antonyms}\t".format(w=word)
-        entry += "{w.other_usages}\t".format(w=word)
-        entry += "{w.pronunciation}\t".format(w=word)
+        entry += "{}\t".format(word.other_usages.encode('utf8'))
+        entry += "{}\t".format(word.pronunciation.encode('utf8'))
         entry += "{w.tags}\n".format(w=word)
         entry += "\n"
         return entry
@@ -266,32 +302,13 @@ class Image(models.Model):
                               auto_now=False, null=True, blank=True)
 
     def __str__(self):
-        try:
-            my_user = self.user.username
-        except:
-            my_user = "Null User"
-        return '{} Submitted Image on {}'.format(my_user, self.timestamp)
+
+        return 'Submitted Image on {}'.format(self.timestamp)
 
     def time_ago(self):
         return naturaltime(self.timestamp)
 
-    def __str__(self):
-        try:
-            return '{} Image {}'.format(self.venue.name, self.id)
-        except:
-            pass
-        try:
-            return '{} Menu {}'.format(self.venue.name, self.id)
-        except:
-            pass
-        try:
-            if not self.user_image:
-                raise ValueError("No user picture")
-            else:
-                return '{} Profile'.format(self.user.username)
-        except:
-            pass
-        return "no string"
+
 
 def make_all_user_profiles():
 

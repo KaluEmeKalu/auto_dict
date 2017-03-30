@@ -88,6 +88,119 @@ def make_anki_text(request):
 # and
 # 3 tells the webpage which
 # html template to use.
+
+
+def get_definition(xml_string):
+    # find the word definition start and end indexes
+    index = xml_string.find("def")
+    index = xml_string.find("dt", index)
+    start_index = xml_string.find(":", index) + 1
+    end_index = xml_string.find("</dt>", start_index)
+
+    # select the string containing the definition
+    my_def = xml_string[start_index:end_index]
+
+    return my_def
+
+def get_xml_string(word):
+    """
+    Takes a word
+    returns xml string of dictionaryapi
+    webstersdict collegiate dict
+    response
+    """
+
+    url = make_url(word)
+    print("\nAttempting to open URL: {}\n\n".format(url))
+    html = urlopen(url)
+    print("\nYay!! URL OPENED!!!\n\n")
+    xml_string = html.read()
+    print("\nYay!! URL READ!!!!!\n\n")
+
+    # if text is not a string,
+    # (i.e., if it's bytes),
+    # convert it to unicode string
+    if not isinstance(xml_string, type("string")):
+        xml_string = xml_string.decode('utf-8')
+
+    return xml_string
+
+
+def wordExists(word):
+    """
+    Takes a word string
+    checks to see if word 
+    exists in Word class 
+    if so, then returns True
+    if not returns False
+    """    
+    words = Word.objects.all()
+
+    exists = False
+
+    # before we do the search
+    # we check if the word
+    # already exists
+    for w_obj in words:
+        if w_obj.word == word.strip():
+            exists = True
+            break
+
+    return exists
+
+
+
+def make_word_model(word_string):
+    """
+    Takes a string of a word,
+    searches that string and
+    returns a Word class object
+    as defined in models.py
+    """
+    word = word_string
+
+    # before we do the search
+    # we check if the word
+    # already exists
+    if wordExists(word):
+        print("\nword already searched\n " * 20)
+        return Word.objects.filter(word=word).first()
+    else:
+        xml_string = get_xml_string(word)
+        my_def = get_definition(xml_string)
+        word_obj = Word(word=word,
+                        definition=my_def,
+                        full_json_response=xml_string,
+                        )
+        word_obj.save()
+        word_obj.get_info()
+        word_obj.save()
+        return word_obj
+
+
+def make_multiple_word_models(word_list):
+    """
+    Takes a list of strings of a word,
+    searches those strings and
+    returns a list of Word class object
+    as defined in models.py
+    """
+    return [make_word_model(word) for word in word_list]
+
+
+def get_wordlist_from_textstring(string):
+    """
+    Takes a string of comma delimited list of
+    words and returns a list of those words
+    """
+
+    # get list of strings split by a comma
+    word_list = string.split(',')
+    # remove empty strings
+    word_list = [word.strip() for word in word_list if word.strip()]
+
+    return word_list
+
 def word_search(request):
 
 
@@ -101,68 +214,47 @@ def word_search(request):
     # input named "word". Use that information
     # to search the dictionaryAPI and return to
     # our user the definition of the word
+
+
     if request.method == 'POST':
-        word = request.POST.get('word', '')
-        word_search = WordSearch(search=word)
-        word_search.save()
 
-        word = word.strip()
-        url = make_url(word)
+        if len(request.FILES) != 0:
+            text = request.FILES['file'].read()
+            wordlist = get_wordlist_from_textstring(text)
+            found_words = make_multiple_word_models(wordlist)
+            context['found_words'] = found_words
 
+            return render(request, 'auto_dict/word_search.html', context)
+        else:
+            word = request.POST.get('word', '')
 
-        # before we do the search
-        # we check if the word
-        # already exists
-        for w in words:
-            if w.word == word:
-                print("word already searched " * 100)
-                context['word'] = w
-                return render(request,
-                              'auto_dict/word_search.html',
-                              context)
+            word_search = WordSearch(search=word)
+            word_search.save()
+            word = word.strip()              
 
-        html = urlopen(url)
-        text = html.read()
+            word_obj = make_word_model(word)
+            context['found_words'] = word_obj
 
-        # if text is not a string,
-        # (i.e., if it's bytes),
-        # convert it to unicode string
-        if not isinstance(text, type("string")):
-            text = text.decode('utf-8')
-
-        # find the word definition start
-        # and end indexes
-        index = text.find("def")
-        index = text.find("dt", index)
-        start_index = text.find(":", index) + 1
-        end_index = text.find("</dt>", start_index)
-
-        # select the string containing the definition
-        my_def = text[start_index:end_index]
-
-        
-
-        word_obj = Word(word=word,
-                        definition=my_def,
-                        full_json_response=text,
-                        )
-        word_obj.save()
-
-        word_obj.get_info()
-        word_obj.save()
-
-        context = {'word': word_obj}
-
-        # this renders the template with some
-        # return a context dictionary
-        # that passes our templates
-        # some pieces of information
-        # (here, the definition
-        # of the word that the user
-        # pass us in the post request)
-        return render(request, 'auto_dict/word_search.html', context)
+            # this renders the template with some
+            # return a context dictionary
+            # that passes our templates
+            # some pieces of information
+            # (here, the definition
+            # of the word that the user
+            # pass us in the post request)
+            return render(request, 'auto_dict/word_search.html', context)
 
     return render(request, 'auto_dict/word_search.html', context)
+
+
+def textfile_word_search(request):
+    words = Word.objects.all()
+    context = {'words': words}
+    import pdb; pdb.set_trace()
+
+    if request.method == 'POST':
+        text = request.FILES['file'].read()
+        
 
 def index(request):
     return render(request, 'auto_dict/index.html')

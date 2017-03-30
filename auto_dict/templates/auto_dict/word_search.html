@@ -10,67 +10,78 @@
                   <div class="col-md-12">
                    <h2>Word Search</h2>   
                       <h5>Please search your word below.</h5>
-                       <form action="{% url 'auto_dict:word_search' %}" method="post"> 
+                        <form enctype="multipart/form-data" action="{% url 'auto_dict:word_search' %}" method="post"> 
                           {% csrf_token %}
                           <input type="text" name="word" id="info">
+                          <h5>Or, upload a text file with comma-deleniated words.</h5>
+                          <input type="file" name="file" id="info">
                           <input type="submit" placeholder="Search" name="Search">
-                       </form>
+                        </form>
+                        
 
-                       {% if word %}
-                        <div class="panel panel-default">
-                            <div class="panel-heading">
-                            {{word.word}}
-                            </div>
-                            <div class="panel-body">
-                                <ul class="nav nav-tabs">
-                                    <li class="active"><a href="#definition" data-toggle="tab">Definition</a>
-                                    </li>
-                                    <li class=""><a href="#example" data-toggle="tab">Example</a>
-                                    </li>
-                                    <li class=""><a href="#origin" data-toggle="tab">Origin</a>
-                                    </li>
-                                    <li class=""><a href="#full_json_response" data-toggle="tab">Full JSON Response</a>
-                                    </li>
-                                    <li class=""><a href="#syllables" data-toggle="tab">Syllables</a>
-                                    </li>
-                                    <li class=""><a href="#part_of_speech" data-toggle="tab">Part of Speech</a>
-                                    </li>
-                                    <li class=""><a href="#pronunciation" data-toggle="tab">Phonetic Prounciation</a>
-                                    </li>
-                                </ul>
+<!--                         <form enctype="multipart/form-data" action="/textfile_word_search/" method="post">
+                          {% csrf_token %}
+                          <input type="file" name="file" id="info">
+                          <input type="submit" value="Save" />
+                        </form> -->
 
-                                <div class="tab-content">
-                                    <div class="tab-pane fade active in" id="definition">
-                                        <h4>Definition: {{word.word}}</h4>
-                                        <p>{{word.definition}}</p>
-                                    </div>
-                                    <div class="tab-pane fade" id="example">
-                                        <h4>Example: {{word.word}}</h4>
-                                        <p>{{word.example}}</p>
-                                    </div>
-                                    <div class="tab-pane fade" id="origin">
-                                        <h4>Origin: {{word.word}}</h4>
-                                        <p>{{word.origin}}</p>
-                                    </div>
-                                    <div class="tab-pane fade" id="full_json_response">
-                                        <h4>Full Json Response: {{word.word}}</h4>
-                                        <p>{{word.full_json_response}}</p>
-                                    </div>
-                                    <div class="tab-pane fade" id="syllables">
-                                        <h4>Syllables: {{word.word}}</h4>
-                                        <p>{{word.syllables}}</p>
-                                    </div>
-                                    <div class="tab-pane fade" id="part_of_speech">
-                                        <h4>Part of Speech: {{word.word}}</h4>
-                                        <p>{{word.part_of_speech}}</p>
-                                    </div>
-                                    <div class="tab-pane fade" id="pronunciation">
-                                        <h4>Phonetic Pronunciation: {{word.word}}</h4>
-                                        <p>{{word.pronunciation}}</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                       {% if found_words %}
+                         {% for word in found_words %}
+                          <div class="panel panel-default">
+                              <div class="panel-heading">
+                              {{word.word}}
+                              </div>
+                              <div class="panel-body">
+                                  <ul class="nav nav-tabs">
+                                      <li class="active"><a href="#definition{{word.id}}" data-toggle="tab">Definition</a>
+                                      </li>
+                                      <li class=""><a href="#example{{word.id}}" data-toggle="tab">Example</a>
+                                      </li>
+                                      <li class=""><a href="#origin{{word.id}}" data-toggle="tab">Origin</a>
+                                      </li>
+                                      <li class=""><a href="#full_json_response{{word.id}}" data-toggle="tab">Full JSON Response</a>
+                                      </li>
+                                      <li class=""><a href="#syllables{{word.id}}" data-toggle="tab">Syllables</a>
+                                      </li>
+                                      <li class=""><a href="#part_of_speech{{word.id}}" data-toggle="tab">Part of Speech</a>
+                                      </li>
+                                      <li class=""><a href="#pronunciation{{word.id}}" data-toggle="tab">Phonetic Prounciation</a>
+                                      </li>
+                                  </ul>
+
+                                  <div class="tab-content">
+                                      <div class="tab-pane fade active in" id="definition{{word.id}}">
+                                          <h4>Definition: {{word.word}}</h4>
+                                          <p>{{word.definition}}</p>
+                                      </div>
+                                      <div class="tab-pane fade" id="example{{word.id}}">
+                                          <h4>Example: {{word.word}}</h4>
+                                          <p>{{word.example}}</p>
+                                      </div>
+                                      <div class="tab-pane fade" id="origin{{word.id}}">
+                                          <h4>Origin: {{word.word}}</h4>
+                                          <p>{{word.origin}}</p>
+                                      </div>
+                                      <div class="tab-pane fade" id="full_json_response{{word.id}}">
+                                          <h4>Full Json Response: {{word.word}}</h4>
+                                          <p>{{word.full_json_response}}</p>
+                                      </div>
+                                      <div class="tab-pane fade" id="syllables{{word.id}}">
+                                          <h4>Syllables: {{word.word}}</h4>
+                                          <p>{{word.syllables}}</p>
+                                      </div>
+                                      <div class="tab-pane fade" id="part_of_speech{{word.id}}">
+                                          <h4>Part of Speech: {{word.word}}</h4>
+                                          <p>{{word.part_of_speech}}</p>
+                                      </div>
+                                      <div class="tab-pane fade" id="pronunciation{{word.id}}">
+                                          <h4>Phonetic Pronunciation: {{word.word}}</h4>
+                                          <p>{{word.pronunciation}}</p>
+                                      </div>
+                                  </div>
+                              </div>
+                          </div>
+                          {% endfor %}
                         {% endif %}
                      
                   </div>
