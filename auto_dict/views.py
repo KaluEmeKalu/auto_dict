@@ -3,7 +3,6 @@ from django.contrib.auth.decorators import login_required
 from django.core.files import File
 from django.shortcuts import render, redirect
 from .make_url import make_url
-from .models import Word
 from django.http import HttpResponse, Http404
 from . forms import UserLoginForm, CreateUserForm, UserImageForm
 from django.views.generic import View
@@ -183,8 +182,6 @@ def make_word_model(word_string):
                         full_json_response=xml_string,
                         )
         word_obj.save()
-        word_obj.get_info()
-        word_obj.save()
         return word_obj
 
 
@@ -229,6 +226,9 @@ def word_search(request):
     if request.method == 'POST':
 
         if len(request.FILES) != 0:
+            # if there files get the files
+            # read them 
+            # and save them as Word models
             text = request.FILES['file'].read()
             text = bytes_to_string(text)
             wordlist = get_wordlist_from_textstring(text)
@@ -237,6 +237,12 @@ def word_search(request):
 
             return render(request, 'auto_dict/word_search.html', context)
         else:
+            # else, if there are no files
+            # that means there's a text input
+            #, get the single word and save it 
+            # as a Word model. Then pass it to
+            # the context as "found words" a list
+            # wiht a single word object.
             word = request.POST.get('word', '')
 
             word_search = WordSearch(search=word)
@@ -244,7 +250,7 @@ def word_search(request):
             word = word.strip()              
 
             word_obj = make_word_model(word)
-            context['found_words'] = word_obj
+            context['found_words'] = [word_obj]
 
             # this renders the template with some
             # return a context dictionary

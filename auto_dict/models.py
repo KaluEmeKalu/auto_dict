@@ -31,8 +31,26 @@ from imagekit.processors import ResizeToFill, Transpose
 from django.db import models
 
 
+def remove_tags_regex(string):
+    return re.sub('<[^<]+?>', '', string)
+
 def image_upload_location(instance, filename):
     return "{}".format(filename)
+
+
+
+def get_definition(xml_string):
+    # find the word definition start and end indexes
+    index = xml_string.find("def")
+    index = xml_string.find("dt", index)
+    start_index = xml_string.find(":", index) + 1
+    end_index = xml_string.find("</dt>", start_index)
+
+    # select the string containing the definition
+    my_def = xml_string[start_index:end_index]
+
+    return my_def
+
 
 
 class IntegerRangeField(IntegerField):
@@ -58,21 +76,6 @@ def menu_upload_location(instance, filename):
     return "{}, Menu, {}".format(instance.venue.name, filename)
 
 
-def remove_all_word_html_tags():
-    words = Word.objects.all()
-
-    for word in words:
-        word.origin = re.sub('<[^<]+?>', '', word.origin)
-
-        word.part_of_speech = re.sub('<[^<]+?>', '', word.part_of_speech)
-        word.syllables = re.sub('<[^<]+?>', '', word.syllables)
-        word.synonyms = re.sub('<[^<]+?>', '', word.synonyms)
-        word.antonyms = re.sub('<[^<]+?>', '', word.antonyms)
-        word.other_usages = re.sub('<[^<]+?>', '', word.other_usages)
-        word.pronunciation = re.sub('<[^<]+?>', '', word.pronunciation)
-        word.tags = re.sub('<[^<]+?>', '', word.tags)
-
-        word.save()
 
 def get_html_contents(html_string, tag, index=None, many=None):
 
@@ -117,6 +120,7 @@ class Tag(Model):
         return self.word
 
 
+
 class AudioRecording(Model):
     file = FileField(upload_to=audio_upload_location)
     user = ForeignKey(User, related_name="audio_recordings",
@@ -146,37 +150,80 @@ class Word(Model):
     full_json_response = TextField(blank=True, null=True)
     timestamp = DateTimeField(
         editable=False, auto_now_add=True, auto_now=False)
+    isPopulated = BooleanField(default=False)
 
 
-    def get_info(self):
+
+
+
+    def remove_html_tags(self, all_words=False):
+
+        #check if word argument passed
+        if all_words is True:
+            words = Word.objects.all()
+            for word in words:
+                word.remove_html_tags()
+        else:
+            self.subject_init = self.subject_initials()
+            self.origin = re.sub('<[^<]+?>', '', self.origin)
+            self.part_of_speech = re.sub('<[^<]+?>', '', self.part_of_speech)
+            self.syllables = re.sub('<[^<]+?>', '', self.syllables)
+            self.synonyms = re.sub('<[^<]+?>', '', self.synonyms)
+            self.antonyms = re.sub('<[^<]+?>', '', self.antonyms)
+            self.other_usages = re.sub('<[^<]+?>', '', self.other_usages)
+            self.pronunciation = re.sub('<[^<]+?>', '', self.pronunciation)
+            self.tags = re.sub('<[^<]+?>', '', self.tags)
+            self.definition = re.sub('<[^<]+?>', '', self.definition)
+
+
+            word.save()
+
+
+    def populate_fields(self):
         json = self.full_json_response
 
         #get prounciation
         pronunciation = get_html_contents(json, 'wpr')
-        self.pronunciation = pronunciation
+        self.pronunciation = remove_tags_regex(pronunciation)
 
         # get part of speech
         part_of_speech = get_html_contents(json, 'fl')
-        self.part_of_speech = part_of_speech
+        self.part_of_speech = remove_tags_regex(part_of_speech)
 
         # get origin
         origin = get_html_contents(json, 'et')
-        self.origin = origin
+        self.origin = remove_tags_regex(origin)
 
-        #get other_usages
+        # get other_usages
         other_usages = get_html_contents(json, 'uro')
         if other_usages:
-            self.other_usages = other_usages
+            self.other_usages = remove_tags_regex(other_usages)
 
-         #get syllables
+        # get syllables
         syllables = get_html_contents(json, 'hw')
-        self.syllables = syllables
+        self.syllables = remove_tags_regex(syllables)
+
+        # get definition
+        definition = get_html_contents(json, 'dt')
+        definition = definition[1:] # removes the colon
+        self.definition = remove_tags_regex(definition)
+
+        self.isPopulated = True
 
         try:
             self.save()
         except:
-            pass
+            raise Exception("There was problem saving!")
         return json
+
+    # This runs upon save populated fieds
+    # if they haven't previously been
+    # populated. 
+    def save(self, *args, **kwargs):
+        if not self.isPopulated:
+            self.populate_fields()
+
+        super(Word, self).save(*args, **kwargs)
 
     def anki_header(self):
         text = "Front\tBack\t"
