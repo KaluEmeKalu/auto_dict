@@ -27,6 +27,7 @@ def bytes_to_string(bytes_obj):
     # convert it to unicode string
     if not isinstance(bytes_obj, type("string")):
         bytes_obj = bytes_obj.decode('utf-8')
+        return bytes_obj
     else:
         return bytes_obj
 
