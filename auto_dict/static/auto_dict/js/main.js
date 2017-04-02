@@ -146,6 +146,7 @@ $('.days_of_class input').change(function() {
 
 // On Click Load Login
 function loadLogin() {
+    console.log("loading login")
     $( "#loadLogin .modal-body" ).load( "login/");
 };
 
@@ -156,6 +157,57 @@ function loadRegister() {
 };
 
 // On Click Load Register
+
 function loadChangeUserPic() {
-    $( "#load_change_user_pic .modal-body" ).load( "change_user_image/");
-};
+    $.ajax({
+        type: "GET",
+        url: 'change_user_image/',
+        dataType: "html",
+
+        success: function(data) {
+            console.log('WORKED! Success!!');
+            $( "#load_change_user_pic .modal-body" ).html(data)
+        }
+
+
+    })//ajax close
+}//function load Change Class close
+
+
+//save answer
+function saveAnswer(answer_id, exam_paper_id, question_id) {
+    console.log("Save answer entered!");
+    var answer_url_input = '#answer' + answer_id;
+    var url = $('#save_answer_url').val();
+    var csrftoken = $('#save_answer_span input[name=csrfmiddlewaretoken]').val();
+
+
+
+    console.log( url, answer_url_input, csrftoken, answer_id, exam_paper_id);
+    $.ajax({
+        type: "POST",
+        // url: url,
+        url: 'http://127.0.0.1:8000/save_answer/',
+        dataType: "json",
+        async: true,
+        data: {
+            csrfmiddlewaretoken: $('#save_answer_span input[name=csrfmiddlewaretoken]').val(),
+            answer_id: answer_id,
+            exam_paper_id: exam_paper_id,
+
+        },//data close
+
+        success: function(json) {
+            console.log(json.the_status);
+            console.log("Shoudl say great!!!")
+            $( "#saved_answer" + question_id ).html(json.saved_answer)
+            console.log(json.saved_answer)
+        },
+
+        error: function(json) {
+            console.log(json);
+        }
+
+
+    })//ajax close
+}//function Create Class close

@@ -1,4 +1,5 @@
-﻿{% load static %}
+﻿{% load widget_tweaks %}
+{% load static %}
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
@@ -39,8 +40,8 @@ font-size: 16px;">{{current_time_string}} &nbsp;
 Hello {{user.username}}!
 <a href="{% url 'auto_dict:logout' %}" class="btn btn-danger square-btn-adjust">Logout</a>
 {% else %}
-<a   data-toggle="modal" data-target="#loadLogin" onclick="loadLogin()" class="btn btn-danger square-btn-adjust">Login</a>
-<a   data-toggle="modal" data-target="#loadRegister" onclick="loadRegister()" class="btn btn-danger square-btn-adjust">Register</a>
+<a   data-toggle="modal" data-target="#loadLogin" class="btn btn-danger square-btn-adjust">Login</a>
+<a   data-toggle="modal" data-target="#loadRegister" class="btn btn-danger square-btn-adjust">Register</a>
 {% endif %}
 <!-- End Check if Logged In -->
  </div>
@@ -53,9 +54,9 @@ Hello {{user.username}}!
                     {% if user.is_authenticated %}
 
                         {% if user.user_profile.profile_pic.image.url %}
-                            <img class="user_image my_pointer" onclick="loadChangeUserPic()" data-toggle="modal" data-target="#load_change_user_pic" src="{{user.user_profile.profile_pic.image.url}}" class="user-image img-responsive"/>
+                            <img class="user_image my_pointer"  data-toggle="modal" data-target="#load_change_user_pic" src="{{user.user_profile.profile_pic.image.url}}" class="user-image img-responsive"/>
                         {% else %}
-                            <img class="user_image my_pointer" onclick="loadChangeUserPic()" data-toggle="modal" data-target="#load_change_user_pic" src="{% static 'auto_dict/img/find_user.png' %}" class="user-image img-responsive"/>
+                            <img class="user_image my_pointer"  data-toggle="modal" data-target="#load_change_user_pic" src="{% static 'auto_dict/img/find_user.png' %}" class="user-image img-responsive"/>
                         {% endif %}
                     {% else %}
                         <img src="{% static 'auto_dict/img/find_user.png' %}" class="user-image img-responsive"/>
@@ -77,34 +78,26 @@ Hello {{user.username}}!
                         <a href=""   data-toggle="modal" data-target="#make_class"><i class="fa fa-bar-chart-o fa-3x"></i> Make Class</a>
                     </li>
 
-              
+                    {% for school_class in school_classes %}
                     <li>
-                        <a href="#"><i class="fa fa-sitemap fa-3x"></i> Multi-Level Dropdown<span class="fa arrow"></span></a>
+                        <a href="#"><i class="fa fa-sitemap fa-3x"></i>{{ school_class.name }} with {{ school_class.teacher.last_name}}  <span class="fa arrow"></span></a>
                         <ul class="nav nav-second-level">
                             <li>
-                                <a href="#">Second Level Link</a>
-                            </li>
-                            <li>
-                                <a href="#">Second Level Link</a>
-                            </li>
-                            <li>
-                                <a href="#">Second Level Link<span class="fa arrow"></span></a>
+                                <a href="#">Exams<span class="fa arrow"></span></a>
                                 <ul class="nav nav-third-level">
+                                    {% for exam in school_class.exams.all %}
                                     <li>
-                                        <a href="#">Third Level Link</a>
+                                        <a href="{% url 'auto_dict:exam' exam_id=1 %}">{{exam.name}}</a>
                                     </li>
-                                    <li>
-                                        <a href="#">Third Level Link</a>
-                                    </li>
-                                    <li>
-                                        <a href="#">Third Level Link</a>
-                                    </li>
+                                    {% endfor %}
 
                                 </ul>
                                
                             </li>
                         </ul>
-                      </li>  	
+                      </li> 
+                      {% endfor %}
+
                 </ul>
                
             </div>
@@ -185,6 +178,19 @@ Hello {{user.username}}!
 
                                 <!--  Form for loadLogin Modal -->
                                 <div class="modal-body">
+
+                                    <form action="{% url 'auto_dict:login' %}" method="post">
+                                        {% csrf_token %}
+                                        {{ user_login_form.username|attr:"placeholder:Username"  }}
+                                        {{ user_login_form.password|attr:"placeholder:Password"  }}
+                                        <br/>
+                                        <!-- <input type="submit" value="Register" name="Submit" class="submit" id="submit" > -->
+                                        <button type="submit">Sign In</button>
+                                        <br/>
+
+                                        <a class="input message error alignCenter" href="">Don't have an account? Register</a>
+                                              
+                                    </form>
                                     
                                 </div>
                                 <!-- End Form for loadLogin Modal -->
@@ -207,7 +213,22 @@ Hello {{user.username}}!
                                 </div>
 
                                 <!--  Form for loadRegister Modal -->
+                                
                                 <div class="modal-body">
+                                  <form action="{% url 'auto_dict:register' %}" method="post">
+
+                                    {% csrf_token %}
+                                    {{ create_user_form.username|attr:"placeholder:Username"  }}
+                                    {{ create_user_form.email|attr:"placeholder:Email"  }}
+                                    {{ create_user_form.password|attr:"placeholder:Password"  }}
+                                    <br/>
+                                    <!-- <input type="submit" value="Register" name="Submit" class="submit" id="submit" > -->
+                                    <button type="submit">Register</button>
+                                    <br/>
+
+                                    <a class="input message error alignCenter" href="{% url 'auto_dict:login' %}">Already have an account? Login</a>
+                                            
+                                  </form>
                                     
                                 </div>
                                 <!-- End Form for loadRegister Modal -->
@@ -231,6 +252,11 @@ Hello {{user.username}}!
 
                                 <!--  Form for loadChangeUserPic Modal -->
                                 <div class="modal-body">
+                                    <form action="{% url 'auto_dict:change_user_image' %}"  enctype="multipart/form-data" method="post">
+                                      {% csrf_token %}
+                                      {{user_image_form}}
+                                      <input type="submit" value="Submit" name="Submit">
+                                    </form>
                                     
                                 </div>
                                 <!-- End Form for loadChangeUserPic Modal -->

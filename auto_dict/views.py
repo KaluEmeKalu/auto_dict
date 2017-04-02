@@ -1,14 +1,17 @@
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.core.files import File
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from .make_url import make_url
-from django.http import HttpResponse, Http404
+from django.http import HttpResponse, Http404, HttpResponseRedirect
 from . forms import UserLoginForm, CreateUserForm, UserImageForm
 from django.views.generic import View
 from django.contrib import messages
+from django.views.generic.edit import CreateView
+from django.urls import reverse
+from datetime import datetime
 
-import os
+import os, json
 try:
     from urllib2 import urlopen
 except:
@@ -16,7 +19,13 @@ except:
 
 from .models import (
     Word,
-    WordSearch
+    WordSearch,
+    ExamPaper,
+    Exam,
+    Selection,
+    OldSelection,
+    Answer,
+    make_all_user_profiles
 )
 
 
@@ -31,12 +40,11 @@ def bytes_to_string(bytes_obj):
         return bytes_obj
 
 
-
 def make_anki_text(request):
     all_words = Word.objects.all()
     anki_header = Word.objects.first().anki_header()
     content = ''
-    content += anki_header 
+    content += anki_header
 
     for word in all_words:
         text = word.make_string()
@@ -81,9 +89,6 @@ def make_anki_text(request):
 #     else:
 #         raise Http404
 
-
-
-
     # return render(request, 'auto_dict/index.html')
 
 
@@ -111,6 +116,7 @@ def get_definition(xml_string):
     my_def = xml_string[start_index:end_index]
 
     return my_def
+
 
 def get_xml_string(word):
     """
@@ -142,7 +148,7 @@ def wordExists(word):
     exists in Word class 
     if so, then returns True
     if not returns False
-    """    
+    """
     words = Word.objects.all()
 
     exists = False
@@ -156,7 +162,6 @@ def wordExists(word):
             break
 
     return exists
-
 
 
 def make_word_model(word_string):
@@ -208,8 +213,150 @@ def get_wordlist_from_textstring(string):
 
     return word_list
 
-def word_search(request):
 
+def turn_in_exam(request, exam_paper_id):
+
+
+    exam_paper = ExamPaper.objects.get(pk=exam_paper_id)
+    exam_paper.is_turned_in = True
+    exam_paper.save()
+    exam_id = exam_paper.exam.id
+    exam = Exam.objects.get(id=exam_id)
+
+    context = {'exam': exam, 'exam_paper': exam_paper}
+
+    return render(request, 'auto_dict/exam.html', context)
+
+
+    return HttpResponse("chill")
+
+
+
+# class SaveAudio(CreateView):
+    # model = AudioRecording
+    # template_name = 'portals/create_audio.html'
+    # fields = [
+    #     'title',
+    #     'file',
+
+    # ]
+
+    # def get_context_data(self, **kwargs):
+    #     # Call the base implementation first to get a context
+    #     print(self)
+
+    #     context = super(SaveAudio, self).get_context_data(**kwargs)
+    #     # Add in a QuerySet of all the books
+    #     context['key_sentence'] = int(self.kwargs['key_sentence'])
+    #     return context
+
+    #def form_valid(self, form):
+        # key_sentence = KeySentence.objects.get(pk=self.kwargs['key_sentence'])
+        #form.save()
+        #form.user = self.request.user
+        # there's a mistake on this line
+        # form.instance.key_sentences.add(key_sentence)
+        #form.save()
+        #print("Audio added " * 88)
+
+        # return redirect('portals:index')
+
+
+def save_answer(request):
+
+
+    if request.method == 'POST':
+
+
+        answer_id = request.POST.get('answer_id', '').strip()
+        exam_paper_id = request.POST.get('exam_paper_id', '').strip()
+
+        answer_obj = Answer.objects.get(id=answer_id)
+        exam_paper_obj = ExamPaper.objects.get(pk=exam_paper_id)
+
+        prev_selection = Selection.objects.filter(answer=answer_obj,
+                                                  exam_paper=exam_paper_obj)
+
+        all_selections = Selection.objects.filter(exam_paper=exam_paper_obj)
+        
+        # Check if question answered before
+        questionAnsweredBefore = False
+        for selection in all_selections:
+            if answer_obj.question == selection.answer.question:
+                questionAnsweredBefore = True
+
+                # if answered before save selection obj
+                selection_obj = selection
+
+        if questionAnsweredBefore:
+            # if previously answered, change answer.
+            s = selection_obj
+            old_selection_obj = OldSelection(answer=s.answer,
+                                             exam_paper=s.exam_paper,
+                                             old_timestamp=s.timestamp)
+            old_selection_obj.save()
+            selection_obj.answer = answer_obj
+            selection_obj.save()
+            print("Edited old selected! " * 50)
+        else:
+        
+            # if not previsouly answered, make new selection
+            import pdb; pdb.set_trace()
+            selection_obj = Selection(answer=answer_obj,
+                                  exam_paper=exam_paper_obj)
+            selection_obj.save()
+            print("Created new selected! " * 50)
+
+
+        save_answer = selection_obj.answer.answer
+        response_data = {'the_status': "all is great!", 'saved_answer': save_answer}
+
+        # except:
+        #     response_data['result'] = 'Oh No!'
+        #     response_data['message'] = 'The script did not work properly'
+
+        return HttpResponse(json.dumps(response_data), content_type="application/json")
+    else:
+        raise Exception("Wasn't able to save answer")
+
+
+
+
+
+def exam(request, exam_id, turn_in=False):
+
+    exam = get_object_or_404(Exam, pk=int(exam_id))
+    exam_taker = request.user
+
+    if turn_in == 'yes' or turn_in == 'true':
+
+        exam_paper = ExamPaper.objects.get(exam_taker=exam_taker, exam=exam)
+        exam_paper.is_turned_in = True
+        exam_paper.save()
+
+        context = {'exam': exam, 'exam_paper': exam_paper}
+
+        return render(request, 'auto_dict/exam.html', context)
+
+    
+
+    # get exam_paper if previous existed
+    # if none create an exam paper
+    try:
+        exam_paper = ExamPaper.objects.get(exam_taker=exam_taker, exam=exam)
+    except ExamPaper.DoesNotExist:
+        exam_paper = ExamPaper(exam_taker=exam_taker, exam=exam)
+        exam_paper.save()
+
+    context = {'exam': exam, 'exam_paper': exam_paper}
+
+    if request.method == 'POST':
+        pass
+
+    return render(request, 'auto_dict/exam.html', context)
+
+
+def word_search(request):
 
     words = Word.objects.all()
     context = {'words': words}
@@ -222,12 +369,11 @@ def word_search(request):
     # to search the dictionaryAPI and return to
     # our user the definition of the word
 
-
     if request.method == 'POST':
 
         if len(request.FILES) != 0:
             # if there files get the files
-            # read them 
+            # read them
             # and save them as Word models
             text = request.FILES['file'].read()
             text = bytes_to_string(text)
@@ -239,15 +385,15 @@ def word_search(request):
         else:
             # else, if there are no files
             # that means there's a text input
-            #, get the single word and save it 
+            #, get the single word and save it
             # as a Word model. Then pass it to
             # the context as "found words" a list
             # wiht a single word object.
-            word = request.POST.get('word', '')
+            word = request.POST.get('word', '').lower()
 
             word_search = WordSearch(search=word)
             word_search.save()
-            word = word.strip()              
+            word = word.strip()
 
             word_obj = make_word_model(word)
             context['found_words'] = [word_obj]
@@ -267,13 +413,15 @@ def word_search(request):
 def textfile_word_search(request):
     words = Word.objects.all()
     context = {'words': words}
-    import pdb; pdb.set_trace()
+    import pdb
+    pdb.set_trace()
 
     if request.method == 'POST':
         text = request.FILES['file'].read()
-        
+
 
 def index(request):
+    make_all_user_profiles()
     return render(request, 'auto_dict/index.html')
 
 
@@ -311,6 +459,7 @@ class UserLoginView(View):
         form = self.form_class(None)
         context = {'form': form}
         return render(request, self.template_name, context)
+
 
 class RegisterView(View):
 
@@ -359,7 +508,7 @@ def change_user_image(request):
 
         if form.is_valid():
 
-            #if there is no user_profile create one
+            # if there is no user_profile create one
             try:
                 user_profile = request.user.user_profile
             except Exception as the_exception:
@@ -368,17 +517,13 @@ def change_user_image(request):
                     a.save()
                     user_profile = a
 
-
             user_image = form.save(commit=False)
             user_image.save()
 
-
             user_profile.all_profile_pics.add(user_image)
             user_profile.profile_pic = user_image
-            user_profile.save()            
-
+            user_profile.save()
 
             return redirect('auto_dict:index')
-
 
     return render(request, 'auto_dict/change_user_pic.html', {'form': UserImageForm()})

@@ -21,6 +21,16 @@ from django.db.models import (
 
 )
 
+import math
+
+
+def delete_error_words(word_obj):
+    error_words = [word for word in Word.objects.all(
+    ) if "id API key or reference name provided" in word.definition]
+    for word in error_words:
+        word.delete()
+
+
 def audio_upload_location(instance, filename):
     return "audio/{}".format(filename)
 
@@ -34,9 +44,9 @@ from django.db import models
 def remove_tags_regex(string):
     return re.sub('<[^<]+?>', '', string)
 
+
 def image_upload_location(instance, filename):
     return "{}".format(filename)
-
 
 
 def get_definition(xml_string):
@@ -50,7 +60,6 @@ def get_definition(xml_string):
     my_def = xml_string[start_index:end_index]
 
     return my_def
-
 
 
 class IntegerRangeField(IntegerField):
@@ -76,7 +85,6 @@ def menu_upload_location(instance, filename):
     return "{}, Menu, {}".format(instance.venue.name, filename)
 
 
-
 def get_html_contents(html_string, tag, index=None, many=None):
 
     if many:
@@ -96,7 +104,7 @@ def get_html_contents(html_string, tag, index=None, many=None):
 
         # return content_list
     else:
-        try:    
+        try:
             open_tag = "<{}>".format(tag)
             close_tag = "</{}>".format(tag)
 
@@ -115,10 +123,12 @@ def get_html_contents(html_string, tag, index=None, many=None):
 class Tag(Model):
     word = CharField(max_length=60)
     user = ForeignKey(User, related_name="tags", blank=True, null=True)
+    timestamp = DateTimeField(
+        editable=False, auto_now_add=True, auto_now=False)
+    updated = models.DateTimeField(auto_now=True, blank=True, null=True)
 
     def __str__(self):
         return self.word
-
 
 
 class AudioRecording(Model):
@@ -128,9 +138,150 @@ class AudioRecording(Model):
     title = CharField(max_length=80, null=True, blank=True)
     timestamp = DateTimeField(editable=False, auto_now_add=True,
                               auto_now=False, null=True, blank=True)
+    updated = models.DateTimeField(auto_now=True, blank=True, null=True)
 
     def __str__(self):
         return self.title
+
+
+class Exam(Model):
+    created_by = ForeignKey(User, blank=True, null=True, related_name='exams')
+    timestamp = DateTimeField(editable=False, auto_now_add=True,
+                              auto_now=False, null=True, blank=True)
+    name = CharField(max_length=80, null=True, blank=True)
+    updated = models.DateTimeField(auto_now=True, blank=True, null=True)
+    school_class = models.ForeignKey('SchoolClass', blank=True,
+                                     null=True, related_name="exams")
+
+    def __str__(self):
+        return self.name
+
+
+class Question(Model):
+    question = TextField(null=True, blank=True)
+    exam = ForeignKey('Exam', related_name="questions", null=True, blank=True)
+    question_number = IntegerField(blank=True, null=True)
+    image = models.ForeignKey(
+        'Image', null=True, blank=True, related_name='question')
+    updated = models.DateTimeField(auto_now=True, blank=True, null=True)
+    timestamp = DateTimeField(
+        editable=False, auto_now_add=True, auto_now=False)
+
+    def __str__(self):
+        return self.question
+
+
+class Answer(Model):
+    answer = TextField(null=True, blank=True)
+    question = ForeignKey('Question', related_name="answers")
+    is_right_answer = BooleanField(default=False)
+    updated = models.DateTimeField(auto_now=True, blank=True, null=True)
+    timestamp = DateTimeField(
+        editable=False, auto_now_add=True, auto_now=False)
+
+    def __str__(self):
+        return self.answer
+
+
+class ExamPaper(Model):
+    exam_taker = ForeignKey(User, null=True, blank=True,
+                            related_name="exam_papers")
+    exam = ForeignKey(Exam, related_name="exam_papers")
+    timestamp = DateTimeField(
+        editable=False, auto_now_add=True, auto_now=False)
+    updated = models.DateTimeField(auto_now=True, blank=True, null=True)
+    is_turned_in = BooleanField(default=False)
+    turn_in_time = models.DateTimeField(auto_now=False, blank=True, null=True)
+
+    def get_answered_questions(self):
+        return [selection.answer.question for selection in self.selections.all()]
+
+    def get_unanswered_questions(self):
+        all_questions = self.exam.questions.all()
+        answered_questions = self.get_answered_questions()
+        return [question for question in all_questions if question not in answered_questions]
+
+    def get_wrong_answers(self):
+        return [selection.answer for selection in self.selections.all() if selection.answer.is_right_answer == False]
+
+    def get_right_answers(self):
+        return [selection.answer for selection in self.selections.all() if selection.answer.is_right_answer == True]
+
+    def get_score(self, out_of_all_total_answers=True):
+        correct_answers = len(self.get_right_answers())
+
+        if out_of_all_total_answers:
+            # total answers equals all exam questions
+            total_questions = len(self.exam.questions.all())
+        else:
+            # total questions equals right answers + wrong answers
+            total_questions = correct_answers + len(self.get_wrong_answers())
+
+        score = float(correct_answers) / float(total_questions) * 100.0
+
+        return round(score)
+
+    def __str__(self):
+        return "{} Exam: Student - {}. ".format(self.exam.name, self.exam_taker.username)
+
+
+class Subject(Model):
+    name = CharField(max_length=160)
+    timestamp = DateTimeField(
+        editable=False, auto_now_add=True, auto_now=False)
+
+    def __str__(self):
+        return self.name
+
+
+class SchoolClass(Model):
+    name = CharField(max_length=160)
+    teacher = ForeignKey(User, blank=True, null=True,
+                         related_name="teacher_classes")
+    students = ManyToManyField(
+        User, blank=True, related_name="student_classes")
+    subject = ForeignKey('Subject', null=True, blank=True)
+    timestamp = DateTimeField(
+        editable=False, auto_now_add=True, auto_now=False)
+
+    def __str__(self):
+        try:
+            return "{} with {}".format(self.name, self.teacher.first_name, self.teacher.last_name)
+        except:
+            return self.name
+
+    class Meta:
+        verbose_name_plural = "School Classes"
+
+
+class AbstractSelection(Model):
+    answer = ForeignKey("Answer", related_name="selections")
+    exam_paper = ForeignKey(
+        "ExamPaper", related_name="selections", null=True, blank=True)
+    timestamp = DateTimeField(
+        editable=False, auto_now_add=True, auto_now=False)
+    updated = models.DateTimeField(auto_now=True, blank=True, null=True)
+
+    def __str__(self):
+        return self.answer.answer
+
+    class Meta:
+        abstract = True
+
+
+
+class Selection(AbstractSelection):
+    pass
+
+
+
+class OldSelection(AbstractSelection):
+    answer = ForeignKey("Answer", related_name="old_selections",
+                        blank=True, null=True)
+    exam_paper = ForeignKey(
+        "ExamPaper", related_name="old_selections", null=True, blank=True)
+    old_timestamp = models.DateTimeField(blank=True, null=True)
+    old_updated_timestamp = models.DateTimeField(blank=True, null=True)
 
 
 class Word(Model):
@@ -139,32 +290,31 @@ class Word(Model):
     definition = TextField(default="No Definition Entry")
     example = TextField(default="No Example Entry")
     origin = TextField(default="No Origin Entry")
-    part_of_speech = TextField(null=True, blank=True, default="No Part Of Speech Entry")
+    part_of_speech = TextField(
+        null=True, blank=True, default="No Part Of Speech Entry")
     syllables = TextField(default="No Syllables Entry")
     synonyms = TextField(default="No Synonyms Entry")
     antonyms = TextField(default="No Antonyms Entry")
-    other_usages = TextField(null=True, blank=True, default="No Other Usages Entry")
-    pronunciation = TextField(null=True, blank=True, default="No Pronunciation Entry")
+    other_usages = TextField(null=True, blank=True,
+                             default="No Other Usages Entry")
+    pronunciation = TextField(null=True, blank=True,
+                              default="No Pronunciation Entry")
     tags = TextField(default="No Tags Entry")
     audio = TextField(default="No Audio Entry")
     full_json_response = TextField(blank=True, null=True)
     timestamp = DateTimeField(
         editable=False, auto_now_add=True, auto_now=False)
     isPopulated = BooleanField(default=False)
-
-
-
-
+    updated = models.DateTimeField(auto_now=True, blank=True, null=True)
 
     def remove_html_tags(self, all_words=False):
 
-        #check if word argument passed
+        # check if word argument passed
         if all_words is True:
             words = Word.objects.all()
             for word in words:
                 word.remove_html_tags()
         else:
-            self.subject_init = self.subject_initials()
             self.origin = re.sub('<[^<]+?>', '', self.origin)
             self.part_of_speech = re.sub('<[^<]+?>', '', self.part_of_speech)
             self.syllables = re.sub('<[^<]+?>', '', self.syllables)
@@ -175,14 +325,12 @@ class Word(Model):
             self.tags = re.sub('<[^<]+?>', '', self.tags)
             self.definition = re.sub('<[^<]+?>', '', self.definition)
 
-
-            word.save()
-
+            self.save()
 
     def populate_fields(self):
         json = self.full_json_response
 
-        #get prounciation
+        # get prounciation
         pronunciation = get_html_contents(json, 'wpr')
         self.pronunciation = remove_tags_regex(pronunciation)
 
@@ -205,7 +353,7 @@ class Word(Model):
 
         # get definition
         definition = get_html_contents(json, 'dt')
-        definition = definition[1:] # removes the colon
+        definition = definition[1:]  # removes the colon
         self.definition = remove_tags_regex(definition)
 
         self.isPopulated = True
@@ -218,7 +366,7 @@ class Word(Model):
 
     # This runs upon save populated fieds
     # if they haven't previously been
-    # populated. 
+    # populated.
     def save(self, *args, **kwargs):
         if not self.isPopulated:
             self.populate_fields()
@@ -233,8 +381,6 @@ class Word(Model):
         text += "Synonyms\tAntonyms\t"
         text += "Other usages\tPronunciation\tTags\n\n"
         return text
-
-
 
     def make_string(self):
         word = self
@@ -265,6 +411,7 @@ class WordSearch(Model):
     times_searched = IntegerField(blank=True, null=True)
     timestamp = DateTimeField(
         editable=False, auto_now_add=True, auto_now=False)
+    updated = models.DateTimeField(auto_now=True, blank=True, null=True)
 
     def __str__(self):
         return self.word
@@ -283,6 +430,7 @@ class Address(Model):
     area_of_city = CharField(max_length=128, null=True, blank=True)
     timestamp = DateTimeField(
         editable=False, auto_now_add=True, auto_now=False)
+    updated = models.DateTimeField(auto_now=True, blank=True, null=True)
 
     def __str__(self):
         return self.address_1
@@ -305,8 +453,10 @@ class Venue(Model):
     is_banned = BooleanField(default=False)
     timestamp = DateTimeField(
         editable=False, auto_now_add=True, auto_now=False)
-    my_namespace = CharField(default="Venue", max_length=128, null=True, blank=True)
+    my_namespace = CharField(
+        default="Venue", max_length=128, null=True, blank=True)
     tags = ManyToManyField(Tag, blank=True)
+    updated = models.DateTimeField(auto_now=True, blank=True, null=True)
 
     def __str__(self):
         return self.name
@@ -323,14 +473,16 @@ class Review(Model):
     venue = ForeignKey(Venue, related_name="reviews")
     timestamp = models.DateTimeField(
         editable=False, auto_now_add=True, auto_now=False)
-    my_namespace = CharField(default="Review", max_length=128, null=True, blank=True)
+    my_namespace = CharField(
+        default="Review", max_length=128, null=True, blank=True)
+    updated = models.DateTimeField(auto_now=True, blank=True, null=True)
 
     def __str__(self):
         return '{}'.format(self.comment)
 
-
     def time_ago(self):
         return naturaltime(self.timestamp)
+
 
 class Image(models.Model):
     # user = OneToOneField(User, related_name="image", null=True, blank=True)
@@ -347,6 +499,7 @@ class Image(models.Model):
         default="Image", max_length=128, null=True, blank=True)
     timestamp = DateTimeField(editable=False, auto_now_add=True,
                               auto_now=False, null=True, blank=True)
+    updated = models.DateTimeField(auto_now=True, blank=True, null=True)
 
     def __str__(self):
 
@@ -356,23 +509,84 @@ class Image(models.Model):
         return naturaltime(self.timestamp)
 
 
+def make_all_user_profiles(users_profiles=False, teachers_profiles=False, student_profiles=False):
+    """
+    Will create all user profiles by default if any are not yet created,
+    if argument variable student_profiles is passed in
+    and set as True then it will create all student_profiles
+    """
 
-def make_all_user_profiles():
+    def make_profiles(ProfileObject, users):
+        for user in users:
+            try:
+                u = ProfileObject(user=user)
+                u.save()
+            except Exception as e:
+                print("\n\n{} profiles were not created \n\n".format(ProfileObject) * 10)
 
-    users = User.objects.all()
 
-    for user in users:
-        try:
-            user.user_profile
-        except:
-            u = UserProfile(user=user)
-            u.save()
+    if users_profiles is True:
+        # create all user profiles
+        ProfileObject = UserProfile
+        users = User.objects.all()
+        make_profiles(ProfileObject, users)
+    elif student_profiles is True:
+        # create all student profiles
+        ProfileObject = StudentProfile
+        users = [user for user in User.objects.all(
+        ) if user.user_profile.is_student is True]
+        make_profiles(ProfileObject, users)
+    else:
+        # create both user and student profiles
 
-        
+        # first create User Profiles
+        ProfileObject = UserProfile
+        users = User.objects.all()
+        make_profiles(ProfileObject, users)
+
+        # then student Profiles
+        ProfileObject = StudentProfile
+        users = [user for user in User.objects.all(
+        ) if user.user_profile.is_student is True]
+        make_profiles(ProfileObject, users)
+
+        #then students
+        ProfileObject = TeacherProfile
+        users = [user for user in User.objects.all(
+        ) if user.user_profile.is_teacher is True]
+        make_profiles(ProfileObject, users)
+
+
+
+class TeacherProfile(models.Model):
+    user = OneToOneField(User, related_name="teacher_profile")
+    subjects = ManyToManyField('Subject', related_name='teachers_profiles',
+                               blank=True)
+
+
+class StudentProfile(models.Model):
+    user = OneToOneField(User, related_name="student_profile")
+    year = IntegerField(blank=True, null=True)
+    gpa = IntegerField(blank=True, null=True)
+    timestamp = DateTimeField(
+        editable=False, auto_now_add=True, auto_now=False)
+    updated = models.DateTimeField(auto_now=True, blank=True, null=True)
+
+    def __str__(self):
+        return '{} Profile'.format(self.user.username)
+
+
 class UserProfile(models.Model):
     user = models.OneToOneField(User, related_name="user_profile")
-    profile_pic = models.ForeignKey('Image', null=True, blank=True, related_name='user_profile')
-    all_profile_pics = models.ManyToManyField('Image', blank=True, related_name="user_profiles")
+    profile_pic = models.ForeignKey(
+        'Image', null=True, blank=True, related_name='user_profile')
+    all_profile_pics = models.ManyToManyField(
+        'Image', blank=True, related_name="user_profiles")
+    is_student = BooleanField(default=True)
+    is_teacher = BooleanField(default=False)
+    timestamp = DateTimeField(
+        editable=False, auto_now_add=True, auto_now=False)
+    updated = models.DateTimeField(auto_now=True, blank=True, null=True)
 
     def __str__(self):
         return '{} Profile'.format(self.user.username)
@@ -384,7 +598,12 @@ def create_user_profile(sender, **kwargs):
     if kwargs['created']:
         user_profile = UserProfile(user=user)
         user_profile.save()
-
+        try:
+            if user.is_student == True:
+                student_profile = StudentProfile(user=user)
+                student_profile.save()
+        except:
+            pass
 
 
 post_save.connect(create_user_profile, sender=User)

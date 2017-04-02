@@ -1,0 +1,112 @@
+{% extends 'auto_dict/base.html' %}
+{% load static %}
+{% load app_filters %}
+{% block title %}Exam{% endblock %}
+{% block page-wrapper %}
+
+
+    <div id="page-wrapper" >
+      <div id="page-inner">
+          <div class="row">
+              <div class="col-md-12">
+               <h2>
+               Exam
+               {% if exam_paper.is_turned_in %}
+               Score: {{ exam_paper.get_score  }}
+               {% else %}
+               <a href="{% url 'auto_dict:exam' turn_in='true' exam_id=exam.id  %}"><button>Turn in exam</button></a>
+               {% endif %}
+               </h2>   
+                  <h5>Please answer the questions below.</h5>
+                  
+
+
+                   {% if exam.questions.all %}
+                     <!-- a hidden input to tell saveAnswer function in main.js
+                          what the url to send answers to -->
+                     <span id="save_answer_span" >
+                       <input type="hidden" value="save_answer/" id="save_answer_url" name="answer_url">
+                       {% csrf_token %}
+                       {% for question in exam.questions.all %}
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                            {{forloop.counter}}) {{question.question}}
+
+                            <span id="saved_answer{{question.id}}" class="label label-success">
+                            {% for answer in question.answers.all %}
+                              {% for selection in exam_paper.selections.all %}
+                              {% if answer == selection.answer %}
+                              {{ answer.answer }}
+                              {% endif %}
+                              {% endfor %}
+                            {% endfor %}
+                            </span>
+                            </div>
+                            <!-- On click the answer will be saved using saveAnswer function
+                                 of main.js. -->
+                            <div class="answer_body panel-body">
+
+                                {% for answer in question.answers.all %}
+                                   <span onclick="saveAnswer({{answer.id}}, {{exam_paper.id}}, {{question.id}})" id="answer{{answer.answer.id}}">
+                                   {{forloop.counter | to_char}}) - {{answer.answer}}
+                                   </span></br></br>
+                                {% endfor %}
+                            </div>
+                        </div>
+                      </span>
+                      {% endfor %}
+                    {% endif %}
+                 
+              </div>
+          </div>
+             <!-- /. ROW  -->
+             <hr />
+
+      {% if words %}
+      <div class="row">
+          <div class="col-md-12">
+              <!-- Advanced Tables -->
+              <div class="panel panel-default">
+                  <div class="panel-heading">
+                       Words Database
+                  </div>
+                  <div class="panel-body">
+                      <div class="table-responsive">
+                          <table class="table table-striped table-bordered table-hover" id="dataTables-example">
+                              <thead>
+                                  <tr>
+                                      <th>Word</th>
+                                      <th>Definition</th>
+                                      <th>Part of Speech(s)</th>
+                                      <th>Other Usages</th>
+                                      <th>Origin</th>
+                                  </tr>
+                              </thead>
+                              {% for word in words %}
+                              <tbody>
+                                  <tr class="odd gradeX">
+                                      <td>{{word.word}}</td>
+                                      <td>{{word.definition}}</td>
+                                      <td>{{word.part_of_speech}}</td>
+                                      <td class="center">{{word.other_usages}}</td>
+                                      <td class="center">{{word.origin}}</td>
+                                  </tr>
+                              </tbody>
+                              {% endfor %}
+                          </table>
+                      </div>
+                      
+                  </div>
+              </div>
+              <!--End Advanced Tables -->
+          </div>
+      </div>
+          <!-- /. ROW  -->
+      {% endif %}
+           
+</div>
+         <!-- /. PAGE INNER  -->
+        </div>
+     <!-- /. PAGE WRAPPER  -->
+     
+{% endblock page-wrapper %}
