@@ -25,10 +25,16 @@
               <div class="row">
                 <div class="col-md-3 col-sm-6 col-xs-6">           
                   <div class="panel panel-back noti-box">
-                    <img src="{{student.user.user_profile.get_image_url}}" class="user-image img-responsive">
+                    <img src="{{student.user_profile.get_image_url}}" class="user-image img-responsive">
                     <div class="text-box" >
+
+                        <!-- If first name or last name show if not then show username -->
+                        {% if student.first_name or student.last_name %}
                         <p class="main-text">{{student.first_name}} {{student.last_name}}</p>
-                        <p class="text-muted">Messages</p>
+                        {% else %}
+                        <p class="main-text">{{student.username}}</p>
+                        {% endif %}
+                        <p class="text-muted">Professional Learner</p>
                     </div>
                   </div>
                 </div>
