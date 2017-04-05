@@ -5,6 +5,11 @@
   cursor: pointer;
 }
 
+/*Make Chat Image Thumbnail Size*/
+.img-circle {
+  width: 40px;
+}
+
 /* Add User Image Next to Noti-box*/
 .noti-box .user-image.img-responsive {
   display: inline;

@@ -473,6 +473,7 @@ def school_class_dashboard(request, school_class_id):
     school_class = get_object_or_404(SchoolClass, pk=int(school_class_id))
     students = school_class.students.all()
     post_form = PostForm()
+    posts = school_class.posts.all()
     
     # turn django collection to 
     # regular python list
@@ -483,7 +484,7 @@ def school_class_dashboard(request, school_class_id):
     students = make_2d_arrays(students)
 
     context = {'students': students, 'school_class': school_class,
-               'post_form': post_form}
+               'post_form': post_form, 'posts': posts}
 
     return render(request, 'auto_dict/school_class_dashboard.html', context)
 

@@ -1,3 +1,4 @@
+from django.contrib.staticfiles.templatetags.staticfiles import static
 from django.db.models import Model
 from django.contrib.auth.models import User
 from django.contrib.humanize.templatetags.humanize import naturaltime
@@ -244,6 +245,7 @@ class SchoolClass(Model):
     subject = ForeignKey('Subject', null=True, blank=True)
     timestamp = DateTimeField(
         editable=False, auto_now_add=True, auto_now=False)
+    private = BooleanField(default=False, blank=True)
 
     def __str__(self):
         try:
@@ -405,13 +407,40 @@ class Word(Model):
         return naturaltime(self.timestamp)
 
 
+class Step(Model):
+    pass
+
+
+class Achievement(Model):
+    points = IntegerField(null=True, blank=True)
+    name = CharField(max_length=180, blank=True, null=True)
+    message = CharField(max_length=300, blank=True, null=True)
+    user = ForeignKey(User, null=True, blank=True,
+                      related_name="achievements")
+    school_class = ForeignKey('SchoolClass', null=True, blank=True,
+                              related_name="achievements")
+    created_by = ForeignKey(User, null=True, blank=True,
+                            related_name='achievements_created')
+    step = ForeignKey('Step', null=True, blank=True,
+                      related_name="achievements")
+    timestamp = DateTimeField(
+        editable=False, auto_now_add=True, auto_now=False)
+    updated = models.DateTimeField(auto_now=True, blank=True, null=True)
+
+    def __str__(self):
+        return self.name
+
+    def time_ago(self):
+        return naturaltime(self.timestamp)
+
+
 class Post(Model):
     timestamp = DateTimeField(
         editable=False, auto_now_add=True, auto_now=False)
     updated = models.DateTimeField(auto_now=True, blank=True, null=True)
     content = TextField(null=True, blank=True)
     user = ForeignKey(User, related_name='posts', blank=True, null=True)
-    school_class = ForeignKey("SchoolClass", related_name="words")
+    school_class = ForeignKey("SchoolClass", related_name="posts")
 
     def __str__(self):
         return self.content
@@ -614,14 +643,22 @@ class UserProfile(models.Model):
     timestamp = DateTimeField(
         editable=False, auto_now_add=True, auto_now=False)
     updated = models.DateTimeField(auto_now=True, blank=True, null=True)
+    points = IntegerField(default=0, blank=True, null=True)
 
     def __str__(self):
         return '{} Profile'.format(self.user.username)
 
     def get_image_url(self):
-        return self.profile_pic.image.url
 
-#         >>> try:
+        try:
+            url = self.profile_pic.image.url 
+            return url
+        except AttributeError as e:
+            # return default user url
+            url = static('auto_dict/img/find_user.png')
+            return url
+
+
 # ...  u.profile_pic.image
 # ... except AttributeError as e:
 # ...  print("You got errror {} .!".format(e))
