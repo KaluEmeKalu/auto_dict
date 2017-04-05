@@ -17,6 +17,8 @@ from .models import (
     SchoolClass,
     TeacherProfile,
     Post,
+    UserAchievement,
+    Achievement,
     Word)
 
 
@@ -71,7 +73,7 @@ class QuestionAdmin(admin.ModelAdmin):
 
 
 class ExamAdmin(admin.ModelAdmin):
-    list_display = ('created_by', 'timestamp', 'name', 'school_class')
+    list_display = ('name', 'timestamp', 'created_by', 'school_class')
 
 
 class AnswerAdmin(admin.ModelAdmin):
@@ -111,9 +113,19 @@ class PostAdmin(admin.ModelAdmin):
                     'timestamp', 'school_class']
 
 
+class AchievementAdmin(admin.ModelAdmin):
+    list_display = ['name', 'message', 'points',
+                    'school_class', 'created_by', 'step']
+
+
+class UserAchievementAdmin(admin.ModelAdmin):
+    list_display = ['user', 'achievement', 'timestamp']
+
+
 admin.site.register(Post, PostAdmin)
 admin.site.register(TeacherProfile, TeacherProfileAdmin)
-
+admin.site.register(UserAchievement, UserAchievementAdmin)
+admin.site.register(Achievement, AchievementAdmin)
 admin.site.register(SchoolClass, SchoolClassAdmin)
 admin.site.register(StudentProfile, StudentProfileAdmin)
 admin.site.register(Subject, SubjectAdmin)

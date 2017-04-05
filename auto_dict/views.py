@@ -471,6 +471,7 @@ def index(request):
 def school_class_dashboard(request, school_class_id):
 
     school_class = get_object_or_404(SchoolClass, pk=int(school_class_id))
+    school_class.give_students_class_achievement()
     students = school_class.students.all()
     post_form = PostForm()
     posts = school_class.posts.all()

@@ -247,6 +247,28 @@ class SchoolClass(Model):
         editable=False, auto_now_add=True, auto_now=False)
     private = BooleanField(default=False, blank=True)
 
+    def give_students_class_achievement(self):
+
+        students = self.students.all()
+        try:
+            achievement  = Achievement.objects.get(school_class=self, 
+                                                  name="Class Start Achievement")
+        except:
+            message = "Welcome to the start of a new learning adventure!"
+            achievement = Achievement(name="Class Start Achievement",
+                                      points=5, message=message,
+                                      school_class=self)
+            achievement.save()
+
+        for student in students:
+            try:
+                UserAchievement.objects.get(user=student,
+                                            achievement=achievement)
+            except:
+                UserAchievement(user=student, achievement=achievement).save()
+
+
+
     def __str__(self):
         try:
             return "{} with {}".format(self.name, self.teacher.first_name, self.teacher.last_name)
@@ -411,12 +433,16 @@ class Step(Model):
     pass
 
 
+
+
+
+
+
+
 class Achievement(Model):
     points = IntegerField(null=True, blank=True)
     name = CharField(max_length=180, blank=True, null=True)
     message = CharField(max_length=300, blank=True, null=True)
-    user = ForeignKey(User, null=True, blank=True,
-                      related_name="achievements")
     school_class = ForeignKey('SchoolClass', null=True, blank=True,
                               related_name="achievements")
     created_by = ForeignKey(User, null=True, blank=True,
@@ -432,6 +458,28 @@ class Achievement(Model):
 
     def time_ago(self):
         return naturaltime(self.timestamp)
+
+
+class UserAchievement(Model):
+    user = ForeignKey(User, null=True, blank=True,
+                      related_name="user_achievements")
+    achievement = ForeignKey('Achievement', null=True, blank=True,
+                             related_name="user_achievements")
+
+    timestamp = DateTimeField(
+        editable=False, auto_now_add=True, auto_now=False)
+    updated = models.DateTimeField(auto_now=True, blank=True, null=True)
+
+    def __str__(self):
+        try:
+            return '{} Achievement for {}. '.format(self.achievement.name, self.user.username)
+        except:
+            return "No string available."
+
+    def time_ago(self):
+        return naturaltime(self.timestamp)
+
+
 
 
 class Post(Model):
