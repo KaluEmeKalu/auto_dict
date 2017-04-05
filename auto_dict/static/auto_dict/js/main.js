@@ -1,3 +1,6 @@
+var production_url = 'http://127.0.0.1:8000/save_answer/';
+var deployment_url = 'http://112.74.48.237/save_answer/';
+
 // This loads date picker .and calendar image
 $( function() {
     $( ".datepicker" ).datepicker({
@@ -187,7 +190,7 @@ function saveAnswer(answer_id, exam_paper_id, question_id) {
     $.ajax({
         type: "POST",
         // url: url,
-        url: 'http://127.0.0.1:8000/save_answer/',
+        url: production_url,
         dataType: "json",
         async: true,
         data: {
@@ -202,10 +205,12 @@ function saveAnswer(answer_id, exam_paper_id, question_id) {
             console.log("Shoudl say great!!!")
             $( "#saved_answer" + question_id ).html(json.saved_answer)
             console.log(json.saved_answer)
+            console.log(json.error);
         },
 
         error: function(json) {
             console.log(json);
+            console.log(json.error);
         }
 
 

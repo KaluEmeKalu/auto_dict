@@ -87,7 +87,7 @@ Hello {{user.username}}!
                                 <ul class="nav nav-third-level">
                                     {% for exam in school_class.exams.all %}
                                     <li>
-                                        <a href="{% url 'auto_dict:exam' exam_id=1 %}">{{exam.name}}</a>
+                                        <a href="{% url 'auto_dict:exam' exam_id=exam.id %}">{{exam.name}}</a>
                                     </li>
                                     {% endfor %}
 

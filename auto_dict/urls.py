@@ -15,9 +15,11 @@ urlpatterns = [
     url(r'^$', views.index, name="index"),
     url(r'^exam/(?P<exam_id>[0-9]+)/(?P<turn_in>[-\w]+)/$', views.exam, name="exam"),
     url(r'^exam/(?P<exam_id>[0-9]+)/', views.exam, name="exam"),
+    url(r'^class/(?P<school_class_id>[0-9]+)/', views.school_class_dashboard, name="school_class_dashboard"),
     url(r'^turn_in_exam/(?P<exam_paper_id>[0-9]+)/$', views.turn_in_exam, name="turn_in_exam"),
     # url(r'^exam/(?P<exam_id>[0-9]+)/save_answer/$', views.save_answer, name="save_answer"),
     url(r'^save_answer/$', views.save_answer, name="save_answer"),
     url(r'^logout/$', views.user_logout, name="logout"),
     url(r'^change_user_image/$', views.change_user_image, name='change_user_image'),
+    url(r'create_post/(?P<school_class_id>[0-9]+)/$', views.PostCreate.as_view(), name='create_post'),
 ]

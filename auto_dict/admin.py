@@ -16,6 +16,7 @@ from .models import (
     StudentProfile,
     SchoolClass,
     TeacherProfile,
+    Post,
     Word)
 
 
@@ -55,13 +56,6 @@ class WordSearchAdmin(admin.ModelAdmin):
     list_display = ('search', 'timestamp')
 
 
-
-
-
-
-class QuestionInline(admin.StackedInline):
-    model = Question
-
 class AnswerInline(admin.StackedInline):
     model = Answer
 
@@ -78,7 +72,6 @@ class QuestionAdmin(admin.ModelAdmin):
 
 class ExamAdmin(admin.ModelAdmin):
     list_display = ('created_by', 'timestamp', 'name', 'school_class')
-    inlines = [QuestionInline,]
 
 
 class AnswerAdmin(admin.ModelAdmin):
@@ -113,6 +106,12 @@ class OldSelectionAdmin(admin.ModelAdmin):
                     'old_updated_timestamp')
 
 
+class PostAdmin(admin.ModelAdmin):
+    list_display = ['content', 'user',
+                    'timestamp', 'school_class']
+
+
+admin.site.register(Post, PostAdmin)
 admin.site.register(TeacherProfile, TeacherProfileAdmin)
 
 admin.site.register(SchoolClass, SchoolClassAdmin)

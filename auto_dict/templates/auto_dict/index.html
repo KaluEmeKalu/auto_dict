@@ -18,11 +18,9 @@
                 <div class="row">
                 <div class="col-md-3 col-sm-6 col-xs-6">           
 			<div class="panel panel-back noti-box">
-                <span class="icon-box bg-color-red set-icon">
-                    <i class="fa fa-envelope-o"></i>
-                </span>
+                <img src="{{user.user_profile.profile_pic.image.url}}"" class="user-image img-responsive">
                 <div class="text-box" >
-                    <p class="main-text">120 New</p>
+                    <p class="main-text">{{user.first_name}} {{user.last_name}}</p>
                     <p class="text-muted">Messages</p>
                 </div>
              </div>

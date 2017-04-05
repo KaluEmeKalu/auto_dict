@@ -5,6 +5,16 @@
   cursor: pointer;
 }
 
+/* Add User Image Next to Noti-box*/
+.noti-box .user-image.img-responsive {
+  display: inline;
+  width: 20%;
+}
+.text-box p,
+.text-box {
+  display: inline;
+}
+
 /*CHange User Pic Size*/
 .user_image {
   max-width: 200px

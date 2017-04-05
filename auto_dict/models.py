@@ -145,6 +145,7 @@ class AudioRecording(Model):
 
 
 class Exam(Model):
+
     created_by = ForeignKey(User, blank=True, null=True, related_name='exams')
     timestamp = DateTimeField(editable=False, auto_now_add=True,
                               auto_now=False, null=True, blank=True)
@@ -404,6 +405,23 @@ class Word(Model):
         return naturaltime(self.timestamp)
 
 
+class Post(Model):
+    timestamp = DateTimeField(
+        editable=False, auto_now_add=True, auto_now=False)
+    updated = models.DateTimeField(auto_now=True, blank=True, null=True)
+    content = TextField(null=True, blank=True)
+    user = ForeignKey(User, related_name='posts', blank=True, null=True)
+    school_class = ForeignKey("SchoolClass", related_name="words")
+
+    def __str__(self):
+        return self.content
+
+    def time_ago(self):
+        return naturaltime(self.timestamp)
+
+    def get_absolute_url(self):
+        return '/class/{}'.format(self.school_class.id)
+
 class WordSearch(Model):
     searched_by = ForeignKey(User, blank=True, null=True)
     search = CharField(max_length=180, default="No Search Entry")
@@ -563,6 +581,12 @@ class TeacherProfile(models.Model):
     subjects = ManyToManyField('Subject', related_name='teachers_profiles',
                                blank=True)
 
+    def __str__(self):
+        return self.user.username
+
+    def get_image_url(self):
+        return self.user.user_profile.profile_pic.image.url
+
 
 class StudentProfile(models.Model):
     user = OneToOneField(User, related_name="student_profile")
@@ -574,6 +598,9 @@ class StudentProfile(models.Model):
 
     def __str__(self):
         return '{} Profile'.format(self.user.username)
+
+    def get_image_url(self):
+        return self.user.user_profile.profile_pic.image.url
 
 
 class UserProfile(models.Model):
@@ -590,6 +617,14 @@ class UserProfile(models.Model):
 
     def __str__(self):
         return '{} Profile'.format(self.user.username)
+
+    def get_image_url(self):
+        return self.profile_pic.image.url
+
+#         >>> try:
+# ...  u.profile_pic.image
+# ... except AttributeError as e:
+# ...  print("You got errror {} .!".format(e))
 
 
 def create_user_profile(sender, **kwargs):

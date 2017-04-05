@@ -1,10 +1,11 @@
+from django.http import JsonResponse
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.core.files import File
 from django.shortcuts import render, redirect, get_object_or_404
 from .make_url import make_url
 from django.http import HttpResponse, Http404, HttpResponseRedirect
-from . forms import UserLoginForm, CreateUserForm, UserImageForm
+from . forms import UserLoginForm, CreateUserForm, UserImageForm, PostForm
 from django.views.generic import View
 from django.contrib import messages
 from django.views.generic.edit import CreateView
@@ -21,11 +22,13 @@ from .models import (
     Word,
     WordSearch,
     ExamPaper,
+    SchoolClass,
     Exam,
     Selection,
     OldSelection,
     Answer,
-    make_all_user_profiles
+    make_all_user_profiles,
+    Post
 )
 
 
@@ -301,7 +304,6 @@ def save_answer(request):
         else:
         
             # if not previsouly answered, make new selection
-            import pdb; pdb.set_trace()
             selection_obj = Selection(answer=answer_obj,
                                   exam_paper=exam_paper_obj)
             selection_obj.save()
@@ -413,11 +415,52 @@ def word_search(request):
 def textfile_word_search(request):
     words = Word.objects.all()
     context = {'words': words}
-    import pdb
-    pdb.set_trace()
 
     if request.method == 'POST':
         text = request.FILES['file'].read()
+
+
+def make_2d_arrays(your_list):
+    """
+    Takes as input a list
+    Returns as output a list
+
+    Output list is oriign list transformed
+    to a 2d array with each inner list having
+    at most least 4 items (except maybe last list)
+    """
+
+    final_list = []
+    index = 0
+
+    #iterate through each list item
+    for item in your_list:
+        # if divisible by 4
+        if index % 4 == 0:
+            through_list = []
+
+            # add the first item
+            # of list to through_list list
+            #  times (for a total of the first 4 items)
+            for _ in range(4):
+                try:
+                    through_list.append(your_list.pop(0))
+                except IndexError as e:
+                    if e.__str__() == "pop from empty list":
+                        pass
+                    else:
+                        raise Exception(e.__str__() + " heyoo")
+
+            
+            # append through_list to final_list
+            final_list.append(through_list)
+    
+    # if there's anything
+    # left in original list
+    # append it to final_list            
+    if your_list:
+        final_list.append(your_list)
+    return final_list
 
 
 def index(request):
@@ -425,8 +468,66 @@ def index(request):
     return render(request, 'auto_dict/index.html')
 
 
+def school_class_dashboard(request, school_class_id):
+
+    school_class = get_object_or_404(SchoolClass, pk=int(school_class_id))
+    students = school_class.students.all()
+    post_form = PostForm()
+    
+    # turn django collection to 
+    # regular python list
+    students = [s for s in students]
+
+    # turn it into 2d lists with the
+    # first lists having 4 items each
+    students = make_2d_arrays(students)
+
+    context = {'students': students, 'school_class': school_class,
+               'post_form': post_form}
+
+    return render(request, 'auto_dict/school_class_dashboard.html', context)
+
+
 def tables(request):
     return render(request, 'auto_dict/table.html')
+
+
+class AjaxableResponseMixin(object):
+    """
+    Mixin to add AJAX support to a form.
+    Must be used with an object-based FormView (e.g. CreateView)
+    """
+    def form_invalid(self, form):
+        response = super(AjaxableResponseMixin, self).form_invalid(form)
+        if self.request.is_ajax():
+            return JsonResponse(form.errors, status=400)
+        else:
+            return response
+
+    def form_valid(self, form):
+        # We make sure to call the parent's form_valid() method because
+        # it might do some processing (in the case of CreateView, it will
+        # call form.save() for example).
+        response = super(AjaxableResponseMixin, self).form_valid(form)
+        if self.request.is_ajax():
+            data = {
+                'pk': self.object.pk,
+            }
+            return JsonResponse(data)
+        else:
+            return response
+
+
+class PostCreate(AjaxableResponseMixin, CreateView):
+    model = Post
+    fields = ['content']
+
+    def form_valid(self, form):
+        school_class = SchoolClass.objects.get(pk=self.kwargs['school_class_id'])
+
+        form.instance.user = self.request.user
+        form.instance.school_class = school_class
+        return super(PostCreate, self).form_valid(form)
 
 
 class UserLoginView(View):
