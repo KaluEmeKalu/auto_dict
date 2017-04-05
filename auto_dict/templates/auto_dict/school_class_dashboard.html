@@ -20,9 +20,10 @@
             <!-- Student-Row For Loop -->
             {% for student_row in students %}
 
+              <div class="row">
               <!-- Student For Loop -->
               {% for student in student_row %}
-              <div class="row">
+              
                 <div class="col-md-3 col-sm-6 col-xs-6">           
                   <div class="panel panel-back noti-box">
                     <img src="{{student.user_profile.get_image_url}}" class="user-image img-responsive">
@@ -38,9 +39,9 @@
                     </div>
                   </div>
                 </div>
-             </div>
              {% endfor %}
              <!--End Student For Loop -->
+             </div>
 
            {% endfor %}
            <!--End Student-Row For Loop -->
