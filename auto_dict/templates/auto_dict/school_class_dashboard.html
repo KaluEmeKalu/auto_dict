@@ -6,18 +6,51 @@
 
     <div id="page-wrapper" >
         <div id="page-inner">
-
-            <!-- Welcome Back  -->
             <div class="row">
-                <div class="col-md-6 col-sm-12 col-xs-12">
-                    <h2>{{school_class.name}}</h2>   
+                <div class="col-md-12">
+                 <h2>Jxfls Dashboard</h2>   
                     {% if user.is_authenticated %}
                     <h5>Welcome {{ user.username }} , Love to see you back. </h5>
                     {% endif %}
                 </div>
+            </div>              
+             <!-- /. ROW  -->
+              <hr />
+            <h2>Class Assistants</h2>   
+            <!-- Student-Row For Loop -->
+            {% for student_row in students %}
 
-            <!-- Start Chat Box Column -->
-            <div class="col-md-6 col-sm-12 col-xs-12">
+              <div class="row">
+              <!-- Student For Loop -->
+              {% for student in student_row %}
+              
+                <div class="col-md-3 col-sm-6 col-xs-6">           
+                  <div class="panel panel-back noti-box">
+                    <img src="{{student.user_profile.get_image_url}}" class="user-image img-responsive">
+                    <div class="text-box" >
+
+                        <!-- If first name or last name show if not then show username -->
+                        {% if student.first_name or student.last_name %}
+                        <p class="main-text">{{student.first_name}} {{student.last_name}}</p>
+                        {% else %}
+                        <p class="main-text">{{student.username}}</p>
+                        {% endif %}
+                        <p class="text-muted">Professional Learner</p>
+                    </div>
+                  </div>
+                </div>
+             {% endfor %}
+             <!--End Student For Loop -->
+             </div>
+
+           {% endfor %}
+           <!--End Student-Row For Loop -->
+
+             <!-- /. ROW  -->
+
+                              <!-- /. ROW  -->
+            <div class="row">
+                <div class="col-md-6 col-sm-12 col-xs-12">
                
                 <div class="chat-panel panel panel-default chat-boder chat-panel-head" >
                     <div class="panel-heading">
@@ -129,53 +162,61 @@
                 </div>
                 
             </div>
-            <!-- End Chat Box Column -->
-
-
-            </div>              
-             <!-- /. ROW  -->
-              <hr />
-            <h2>Class Assistants</h2>   
-            <!-- Student-Row For Loop -->
-            {% for student_row in students %}
-
-              <div class="row">
-              <!-- Student For Loop -->
-              {% for student in student_row %}
-              
-                <div class="col-md-3 col-sm-6 col-xs-6">           
-                  <div class="panel panel-back noti-box">
-                    <img src="{{student.user_profile.get_image_url}}" class="user-image img-responsive">
-                    <div class="text-box" >
-
-                        <!-- If first name or last name show if not then show username -->
-                        {% if student.first_name or student.last_name %}
-                        <p class="main-text">{{student.first_name}} {{student.last_name}}</p>
-                        {% else %}
-                        <p class="main-text">{{student.username}}</p>
-                        {% endif %}
-                        <p class="text-muted">Professional Learner</p>
+                <div class="col-md-6 col-sm-12 col-xs-12">
+                     
+                     
+                     <div class="panel panel-default">
+                    <div class="panel-heading">
+                        Achievement Points
                     </div>
-                  </div>
+                    <div class="panel-body">
+                        <div id="morris-donut-chart"></div>
+                    </div>
                 </div>
-             {% endfor %}
-             <!--End Student For Loop -->
-             </div>
-
-           {% endfor %}
-           <!--End Student-Row For Loop -->
-
+                  
+                </div>
+            </div>     
+            
+             <!-- /. ROW  -->
+            <div style="display:none" class="row"> 
+                
+                  
+                           <div class="col-md-9 col-sm-12 col-xs-12">                     
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        Bar Chart Example
+                    </div>
+                    <div class="panel-body">
+                        <div id="morris-bar-chart"></div>
+                    </div>
+                </div>            
+            </div>
+                <div class="col-md-3 col-sm-12 col-xs-12">                       
+                <div class="panel panel-primary text-center no-boder bg-color-green">
+                    <div class="panel-body">
+                        <i class="fa fa-bar-chart-o fa-5x"></i>
+                        <h3>120 GB </h3>
+                    </div>
+                    <div class="panel-footer back-footer-green">
+                       Disk Space Available
+                        
+                    </div>
+                </div>
+                <div class="panel panel-primary text-center no-boder bg-color-red">
+                    <div class="panel-body">
+                        <i class="fa fa-edit fa-5x"></i>
+                        <h3>20,000 </h3>
+                    </div>
+                    <div class="panel-footer back-footer-red">
+                        Articles Pending
+                        
+                    </div>
+                </div>                         
+                    </div>
+            
+       </div>
              <!-- /. ROW  -->
 
-                              <!-- /. ROW  -->
-            <div class="row">
-
-                
-            </div>     
-             <!-- /. ROW  -->  
-
-            <hr />                
-            
      
 </div>
          <!-- /. PAGE INNER  -->
