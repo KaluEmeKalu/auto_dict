@@ -2,6 +2,8 @@ var production_url = 'http://127.0.0.1:8000/save_answer/';
 var deployment_url = 'http://112.74.48.237/save_answer/';
 var post_url = production_url;
 
+
+console.log(data22);
 // This loads date picker .and calendar image
 $( function() {
     $( ".datepicker" ).datepicker({

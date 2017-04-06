@@ -291,6 +291,11 @@ Hello {{user.username}}!
      <script src="{% static 'auto_dict/js/morris/raphael-2.1.0.min.js' %}" ></script>
     <script src="{% static 'auto_dict/js/morris/morris.js' %}"></script>
       <!-- CUSTOM SCRIPTS -->
+    {% block script %}
+    <script type="text/javascript">
+         var someVar = 'tester tester'; 
+    </script>
+    {% endblock %}
     <script src="{% static 'auto_dict/js/custom.js' %}"></script>
 
 

@@ -379,3 +379,7 @@
 
          
 {% endblock page-wrapper %}
+
+{% block script %}
+<script type="text/javascript">var students_points_data = JSON.parse("{{school_class.get_json_points_data|escapejs}}");</script>
+{% endblock %}

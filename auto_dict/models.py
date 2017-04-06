@@ -23,6 +23,7 @@ from django.db.models import (
 )
 
 import math
+import json
 
 
 def delete_error_words(word_obj):
@@ -236,6 +237,9 @@ class Subject(Model):
         return self.name
 
 
+
+
+
 class SchoolClass(Model):
     name = CharField(max_length=160)
     teacher = ForeignKey(User, blank=True, null=True,
@@ -246,6 +250,27 @@ class SchoolClass(Model):
     timestamp = DateTimeField(
         editable=False, auto_now_add=True, auto_now=False)
     private = BooleanField(default=False, blank=True)
+
+
+    def get_json_points_data(self):
+        """
+        returns a json list of key-value pairs
+        of students and class points, each
+        list will have the keys-value pairs:
+           label:"some_username", 
+           value: *some integer* (see custom.js)
+        """
+        pass
+        students = self.students.all()
+        json_list = []
+        for student in students:
+            points = get_achievement_points(student)
+            my_dict = {'label': student.username,
+                       'value': points}
+            json_list.append(my_dict)
+
+        return json.dumps(json_list)
+
 
     def give_students_class_achievement(self):
 
@@ -458,6 +483,17 @@ class Achievement(Model):
 
     def time_ago(self):
         return naturaltime(self.timestamp)
+
+
+
+def get_achievement_points(user_obj):
+    achievements = user_obj.user_achievements.all()
+
+    points = 0
+    for user_achievement in achievements:
+        points += user_achievement.achievement.points
+    return points 
+    
 
 
 class UserAchievement(Model):
