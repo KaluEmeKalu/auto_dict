@@ -26,11 +26,26 @@ import math
 import json
 
 
+
+
+
 def delete_error_words(word_obj):
     error_words = [word for word in Word.objects.all(
     ) if "id API key or reference name provided" in word.definition]
     for word in error_words:
         word.delete()
+
+
+def step_image_upload_location(instance, filename):
+    return "steps/images/{}".format(filename)
+
+
+def step_audio_upload_location(instance, filename):
+    return "steps/audio/{}".format(filename)
+
+
+def step_file_upload_location(instance, filename):
+    return "steps/files/{}".format(filename)
 
 
 def audio_upload_location(instance, filename):
@@ -48,7 +63,10 @@ def remove_tags_regex(string):
 
 
 def image_upload_location(instance, filename):
-    return "{}".format(filename)
+    return "images/{}".format(filename)
+
+
+
 
 
 def get_definition(xml_string):
@@ -455,13 +473,98 @@ class Word(Model):
 
 
 class Step(Model):
-    pass
+    name = CharField(max_length=180, blank=True, null=True)
+    school_class = ForeignKey('SchoolClass', blank=True, null=True,
+                              related_name='steps')
+    description = TextField(blank=True, default='')
+    order = models.IntegerField(default=0)
+
+    file = FileField(null=True, blank=True, upload_to=step_file_upload_location)
+    image = ProcessedImageField(processors=[Transpose()],
+                                upload_to=step_image_upload_location,
+                                null=True,
+                                blank=True,
+                                format='JPEG',
+                                options={'quality': 60})
+    exam = ForeignKey('Exam', related_name='steps', null=True, blank=True)
+    articles = ManyToManyField('Article', related_name="steps", blank=True)
+    timestamp = DateTimeField(
+        editable=False, auto_now_add=True, auto_now=False)
+    updated = models.DateTimeField(auto_now=True, blank=True, null=True)
+
+    def get_articles(self):
+        """
+        return colleciton of articles if exists,
+        if not returns empty list
+        """
+        try:
+            all_articles = self.articles.all()
+            return all_articles
+        except:
+            return []
 
 
 
+    class Meta:
+        ordering = ['order', ]
+
+    def __str__(self):
+        return self.name
+
+    def time_ago(self):
+        return naturaltime(self.timestamp)
 
 
 
+class Article(Model):
+    texts = ManyToManyField('Text', related_name="articles", blank=True)
+    title = CharField(max_length=180, blank=True, null=True)
+
+    timestamp = DateTimeField(
+        editable=False, auto_now_add=True, auto_now=False)
+    updated = models.DateTimeField(auto_now=True, blank=True, null=True)
+    order = IntegerField(default=0)
+    url = CharField(max_length=300, blank=True, null=True)
+    image = models.ForeignKey('Image', null=True, blank=True,
+                              related_name='articles')
+
+
+    def get_texts(self):
+        """
+        return colleciton of articles if exists,
+        if not returns empty list
+        """
+        try:
+            all_texts = self.texts.all()
+            return all_texts
+        except:
+            return []
+
+    def __str__(self):
+        return self.title
+
+    def time_ago(self):
+        return naturaltime(self.timestamp)
+
+    class Meta:
+        ordering = ['order']
+
+class Text(Model):
+    title = CharField(max_length=180, blank=True, null=True)
+    content = TextField(blank=True, null=True)
+    timestamp = DateTimeField(
+        editable=False, auto_now_add=True, auto_now=False)
+    updated = DateTimeField(auto_now=True, blank=True, null=True)
+    order = IntegerField(default=0)
+
+    def __str__(self):
+        return self.title
+
+    def time_ago(self):
+        return naturaltime(self.timestamp)
+
+    class Meta:
+        ordering = ['order']
 
 
 class Achievement(Model):
@@ -477,6 +580,8 @@ class Achievement(Model):
     timestamp = DateTimeField(
         editable=False, auto_now_add=True, auto_now=False)
     updated = models.DateTimeField(auto_now=True, blank=True, null=True)
+
+
 
     def __str__(self):
         return self.name
@@ -494,6 +599,10 @@ def get_achievement_points(user_obj):
         points += user_achievement.achievement.points
     return points 
     
+
+class StepAchievementTable(Model):
+    pass
+
 
 
 class UserAchievement(Model):

@@ -8,10 +8,70 @@
         <div id="page-inner">
             <div class="row">
                 <div class="col-md-12">
-                 <h2>Jxfls Dashboard</h2>   
+                 <h2>{{school_class.name }} with {{ school_class.teacher.first_name }}</h2>   
                     {% if user.is_authenticated %}
-                    <h5>Welcome {{ user.username }} , Love to see you back. </h5>
+                    <h5>Welcome {{ user.username }}. Love to see you back. </h5>
                     {% endif %}
+
+                    <!-- Add Steps -->
+
+
+                    <div class="panel panel-default">
+                        <!-- <div class="panel-heading">
+                        {{school_class.name}} Steps
+                        </div> -->
+                        <div class="panel-body">
+
+                            <!-- Steps Header Tabs -->
+                            <ul class="nav nav-tabs">
+                                {% for step in school_class.steps.all %}
+                                <li class=""><a href="#step{{step.id}}" data-toggle="tab">{{step.name}}</a>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                            <!-- End Steps Header Tabs -->
+
+                            <!-- Steps Tab Content -->
+                            <div class="tab-content">
+
+                                <!-- For Loop for Steps -->
+                                {% for step in school_class.steps.all %}
+                                <div class="tab-pane fade active in" id="step{{step.id}}">
+                                    <h4>{{step.description}}</h4>
+                                    <p>{{word.definition}}</p>
+
+                                  <!-- For Loop for Articles -->
+                                  {% for article in step.get_articles %}
+                                  <h3>{{article.title}}</h3>
+                                  <p>{{article.url}}</p>
+
+                                    <!-- For Loop for texts -->
+                                    {% for text in article.get_texts %}
+
+                                      <h4>{{text.title}}</h4>
+                                      <p>{{text.content | linebreaks }}</p>
+
+                                    {% endfor %}
+                                    <!-- End For Loop for texts -->
+
+                                  {% endfor %}
+                                  <!-- End For Loop for Articles -->
+
+                                </div>
+                                {% endfor %} 
+                                <!-- End For Loop For Steps -->
+
+                            </div>
+                            <!-- End Steps Tab Content -->
+
+                        </div>
+                    </div>
+
+
+
+                    <!-- End Add Steps -->
+
+
                 </div>
             </div>              
              <!-- /. ROW  -->

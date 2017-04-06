@@ -19,6 +19,9 @@ from .models import (
     Post,
     UserAchievement,
     Achievement,
+    Article,
+    Text,
+    Step,
     Word)
 
 
@@ -122,7 +125,22 @@ class UserAchievementAdmin(admin.ModelAdmin):
     list_display = ['user', 'achievement', 'timestamp']
 
 
+class StepAdmin(admin.ModelAdmin):
+    list_display = ['name', 'school_class', 'description', 'order',
+                    'file', 'image', 'exam', 'timestamp']
+
+class TextAdmin(admin.ModelAdmin):
+    list_display = ['title', 'content', 'timestamp']
+
+
+class AritcleAdmin(admin.ModelAdmin):
+    list_display = ['title', 'timestamp', 'order', 'url', 'image']
+
+
+admin.site.register(Article, AritcleAdmin)
+admin.site.register(Step, StepAdmin)
 admin.site.register(Post, PostAdmin)
+admin.site.register(Text, TextAdmin)
 admin.site.register(TeacherProfile, TeacherProfileAdmin)
 admin.site.register(UserAchievement, UserAchievementAdmin)
 admin.site.register(Achievement, AchievementAdmin)
