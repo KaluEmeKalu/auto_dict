@@ -56,7 +56,7 @@
 
                                     <!-- Add Download Button if File Exists -->
                                     {% if step.file %}
-                                    <button class="btn btn-primary" href="{{step.file.url}}">Download {{step.file.name}}</button><br>
+                                    <a href="{{step.file.url}}"><button class="btn btn-primary" >Download {{step.file.name}}</button></a><br>
                                     {% endif %}
                                     
                                     <!-- Add Url Link if Url Link -->
