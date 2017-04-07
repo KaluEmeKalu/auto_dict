@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib.staticfiles.templatetags.staticfiles import static
 from django.db.models import Model
 from django.contrib.auth.models import User
@@ -164,18 +165,6 @@ class AudioRecording(Model):
         return self.title
 
 
-class Exam(Model):
-
-    created_by = ForeignKey(User, blank=True, null=True, related_name='exams')
-    timestamp = DateTimeField(editable=False, auto_now_add=True,
-                              auto_now=False, null=True, blank=True)
-    name = CharField(max_length=80, null=True, blank=True)
-    updated = models.DateTimeField(auto_now=True, blank=True, null=True)
-    school_class = models.ForeignKey('SchoolClass', blank=True,
-                                     null=True, related_name="exams")
-
-    def __str__(self):
-        return self.name
 
 
 class Question(Model):
@@ -204,15 +193,36 @@ class Answer(Model):
         return self.answer
 
 
-class ExamPaper(Model):
-    exam_taker = ForeignKey(User, null=True, blank=True,
-                            related_name="exam_papers")
-    exam = ForeignKey(Exam, related_name="exam_papers")
+
+class Exam(Model):
+    created_by = ForeignKey(User, blank=True, null=True, related_name='exams')
+    timestamp = DateTimeField(editable=False, auto_now_add=True,
+                              auto_now=False, null=True, blank=True)
+    name = CharField(max_length=80, null=True, blank=True)
+    updated = models.DateTimeField(auto_now=True, blank=True, null=True)
+    school_class = ForeignKey('SchoolClass', blank=True,
+                                     null=True, related_name="exams")
+    def __str__(self):
+        return self.name
+
+    def get_absolute_url(self):
+        isDS = settings.IS_DEPLOYMENT_SERVER
+        try:
+            url = 'http://112.74.48.237/exam/' if isDS else 'http://127.0.0.1:8000/exam/'
+            return url + str(self.id)
+        except Exception as e:
+            raise Exception("""
+                            Got Error {}. 
+                            Have you set the isDeploymentServer variable in settings.py?
+                            """.format(e))
+
+
+
+class ExamPaperHelper(Model):
+
     timestamp = DateTimeField(
         editable=False, auto_now_add=True, auto_now=False)
     updated = models.DateTimeField(auto_now=True, blank=True, null=True)
-    is_turned_in = BooleanField(default=False)
-    turn_in_time = models.DateTimeField(auto_now=False, blank=True, null=True)
 
     def get_answered_questions(self):
         return [selection.answer.question for selection in self.selections.all()]
@@ -242,8 +252,34 @@ class ExamPaper(Model):
 
         return round(score)
 
+    class Meta:
+        abstract = True
+
     def __str__(self):
-        return "{} Exam: Student - {}. ".format(self.exam.name, self.exam_taker.username)
+        try:
+            return "{} Exam: Exam Taker - {}. ".format(self.exam.name, self.exam_taker.username)
+        except:
+            return "Exam object {} created at {}".format(self.id, self.timestamp)
+
+
+class ExamPaper(ExamPaperHelper):
+    is_turned_in = BooleanField(default=False)
+    exam_taker = ForeignKey(User, null=True, blank=True,
+                            related_name="exam_papers")
+    exam = ForeignKey(Exam, related_name="exam_papers")
+    turn_in_time = models.DateTimeField(auto_now=False, blank=True, null=True)
+    final_score = IntegerField(null=True)
+
+
+
+class TurnedInExam(Model):
+    timestamp = DateTimeField(
+        editable=False, auto_now_add=True, auto_now=False)
+    updated = models.DateTimeField(auto_now=True, blank=True, null=True)
+    final_score = IntegerField(null=True)
+    exam_taker = ForeignKey(User, related_name="turned_in_exams", null=True)
+    exam_paper = OneToOneField('ExamPaper', related_name='turned_in_exam',
+                               null=True)
 
 
 class Subject(Model):
@@ -253,7 +289,6 @@ class Subject(Model):
 
     def __str__(self):
         return self.name
-
 
 
 
@@ -268,6 +303,7 @@ class SchoolClass(Model):
     timestamp = DateTimeField(
         editable=False, auto_now_add=True, auto_now=False)
     private = BooleanField(default=False, blank=True)
+    updated = models.DateTimeField(auto_now=True, blank=True, null=True)
 
 
     def get_json_points_data(self):
@@ -491,6 +527,12 @@ class Step(Model):
     timestamp = DateTimeField(
         editable=False, auto_now_add=True, auto_now=False)
     updated = models.DateTimeField(auto_now=True, blank=True, null=True)
+
+    def get_href(self):
+        # if self.exam:
+            #return exam url
+            # pass
+        return "#step{}".format(self.id)
 
     def get_articles(self):
         """

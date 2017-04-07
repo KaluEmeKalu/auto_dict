@@ -24,6 +24,7 @@ from .models import (
     ExamPaper,
     SchoolClass,
     Exam,
+    TurnedInExam,
     Selection,
     OldSelection,
     Answer,
@@ -43,7 +44,29 @@ def bytes_to_string(bytes_obj):
         return bytes_obj
 
 
+# refactor this to make same as make_anki_text
+def make_anki_text_from_scratch():
+
+
+    
+    anki_header = Word.objects.first().anki_header()
+    content = ''
+    content += anki_header
+
+    for word in all_words:
+        text = word.make_string()
+        content += text
+
+    with open("anki_doc.txt", 'w') as f:
+        f.write(content)
+        f.close()
+
+    return HttpResponse(content, content_type='text/plain')        
+
+
 def make_anki_text(request):
+
+    #all_words = all_words if all_words else Word.objects.all()
     all_words = Word.objects.all()
     anki_header = Word.objects.first().anki_header()
     content = ''
@@ -219,8 +242,8 @@ def get_wordlist_from_textstring(string):
 
 def turn_in_exam(request, exam_paper_id):
 
-
     exam_paper = ExamPaper.objects.get(pk=exam_paper_id)
+    exam_paper.final_score = exam_paper.get_score()
     exam_paper.is_turned_in = True
     exam_paper.save()
     exam_id = exam_paper.exam.id
@@ -332,9 +355,16 @@ def exam(request, exam_id, turn_in=False):
 
     if turn_in == 'yes' or turn_in == 'true':
 
+        # Turn in Exam.
         exam_paper = ExamPaper.objects.get(exam_taker=exam_taker, exam=exam)
         exam_paper.is_turned_in = True
         exam_paper.save()
+
+        # Create and save TurnInExam object
+        turned_in_exam = TurnedInExam(final_score=exam_paper.get_score(),
+                                      exam_taker=exam_paper.exam_taker,
+                                      exam_paper=exam_paper)
+        turned_in_exam.save()
 
         context = {'exam': exam, 'exam_paper': exam_paper}
 
@@ -358,7 +388,7 @@ def exam(request, exam_id, turn_in=False):
     return render(request, 'auto_dict/exam.html', context)
 
 
-def word_search(request):
+def word_search(request, anki_import=True):
 
     words = Word.objects.all()
     context = {'words': words}
@@ -382,6 +412,24 @@ def word_search(request):
             wordlist = get_wordlist_from_textstring(text)
             found_words = make_multiple_word_models(wordlist)
             context['found_words'] = found_words
+
+            if anki_import:
+
+                # refactor this!!
+                anki_header = Word.objects.first().anki_header()
+                content = ''
+                content += anki_header
+
+                for word in found_words:
+                    text = word.make_string()
+                    content += text
+
+                with open("anki_doc.txt", 'w') as f:
+                    f.write(content)
+                    f.close()
+
+                return HttpResponse(content, content_type='text/plain')        
+
 
             return render(request, 'auto_dict/word_search.html', context)
         else:
