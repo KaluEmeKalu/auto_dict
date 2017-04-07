@@ -49,7 +49,8 @@
                                 <!-- For Loop for Steps -->
                                 {% for step in school_class.steps.all %}
                                 <div class="tab-pane fade active in" id="step{{step.id}}">
-                                    <h4>{{step.description}}</h4>
+                                    <h3>Overview</h3>
+                                    <p>{{step.description}}</p>
                                     <!-- If exam, post the exam link -->
                                     {% if step.exam %}
                                       <a href="{{step.exam.get_absolute_url}}">Take the Executive Function Quiz</a>
@@ -63,7 +64,7 @@
                                     <!-- For Loop for texts -->
                                     {% for text in article.get_texts %}
 
-                                      <h4>{{text.title}}</h4>
+                                      <h4><strong>{{text.title}}</strong></h4>
                                       <p>{{text.content | linebreaks }}</p>
 
                                     {% endfor %}

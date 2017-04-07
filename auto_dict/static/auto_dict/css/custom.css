@@ -5,6 +5,11 @@
   cursor: pointer;
 }
 
+/*Makes Question Picture Smaller*/
+.question_image {
+  width: 60%;
+}
+
 /*Make Chat Image Thumbnail Size*/
 .img-circle {
   width: 40px;

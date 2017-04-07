@@ -32,6 +32,7 @@
                             <div class="panel-heading">
                             {{forloop.counter}}) {{question.question}}
 
+                            <!-- Selected Answer is showed here -->
                             <span id="saved_answer{{question.id}}" class="label label-success">
                             {% for answer in question.answers.all %}
                               {% for selection in exam_paper.selections.all %}
@@ -41,6 +42,13 @@
                               {% endfor %}
                             {% endfor %}
                             </span>
+
+                            <!-- Questio Image if it exists -->
+                            {% if question.image %}
+                            <br><a href="{{ question.image.image.url }}"><img class="question_image" src="{{ question.image.image.url }}"></a>
+                            {% endif %}
+
+
                             </div>
                             <!-- On click the answer will be saved using saveAnswer function
                                  of main.js. -->
