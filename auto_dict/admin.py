@@ -127,7 +127,7 @@ class UserAchievementAdmin(admin.ModelAdmin):
 
 class StepAdmin(admin.ModelAdmin):
     list_display = ['name', 'school_class', 'description', 'order',
-                    'file', 'image', 'exam', 'timestamp']
+                    'file', 'image', 'exam', 'url', 'timestamp']
 
 class TextAdmin(admin.ModelAdmin):
     list_display = ['title', 'content', 'timestamp']

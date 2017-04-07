@@ -514,6 +514,7 @@ class Step(Model):
                               related_name='steps')
     description = TextField(blank=True, default='')
     order = models.IntegerField(default=0)
+    url = CharField(max_length=300, blank=True, null=True)
 
     file = FileField(null=True, blank=True, upload_to=step_file_upload_location)
     image = ProcessedImageField(processors=[Transpose()],

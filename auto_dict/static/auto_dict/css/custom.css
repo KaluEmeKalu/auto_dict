@@ -6,7 +6,8 @@
 }
 
 /*Makes Question Picture Smaller*/
-.question_image {
+.question_image,
+.width60percent {
   width: 60%;
 }
 
