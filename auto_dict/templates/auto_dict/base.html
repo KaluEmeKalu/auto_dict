@@ -78,18 +78,33 @@ Hello {{user.username}}!
                     <li>
                         <a href="#"><i class="fa fa-sitemap fa-3x"></i>{{ school_class.name }} with {{ school_class.teacher.last_name}}  <span class="fa arrow"></span></a>
                         <ul class="nav nav-second-level">
+
+                            <!-- Loop through Class Steps -->
+                            {% for step in school_class.steps.all %}
                             <li>
-                                <a href="#">Exams<span class="fa arrow"></span></a>
+                                <a href="">{{step.name}}<span class="fa arrow"></span></a>
+                                
+                                
                                 <ul class="nav nav-third-level">
-                                    {% for exam in school_class.exams.all %}
+                                    
+                                    {% if step.url %}    
                                     <li>
-                                        <a href="{% url 'auto_dict:exam' exam_id=exam.id %}">{{exam.name}}</a>
+                                        <a href="{{step.url}}">Resources</a>
                                     </li>
-                                    {% endfor %}
+                                    {% endif %}
+
+                                    <li>
+                                        <a href="/class/{{school_class.id}}">Dashboard</a>
+                                    </li>    
 
                                 </ul>
+                                
                                
                             </li>
+                            {% endfor %}
+                            <!--End Loop through Class Steps -->
+
+
                         </ul>
                       </li> 
                       {% endfor %}
