@@ -1,12 +1,15 @@
+##############################
+#  Imports                   #
+##############################
+
+# django Imports
 from django.conf import settings
 from django.contrib.staticfiles.templatetags.staticfiles import static
 from django.db.models import Model
 from django.contrib.auth.models import User
 from django.contrib.humanize.templatetags.humanize import naturaltime
 from django.db.models.signals import post_save
-import re
-
-# Create your models here.
+from django.db import models
 from django.db.models import (
     CharField,
     DateTimeField,
@@ -19,16 +22,17 @@ from django.db.models import (
     OneToOneField,
     ManyToManyField,
     FileField
-
-
 )
 
+# python imports
+import re
 import math
 import json
 
-
-
-
+# others
+from imagekit.models import ImageSpecField, ProcessedImageField
+from imagekit.processors import ResizeToFill, Transpose
+from bs4 import BeautifulSoup as BS
 
 def delete_error_words(word_obj):
     error_words = [word for word in Word.objects.all(
@@ -37,12 +41,15 @@ def delete_error_words(word_obj):
         word.delete()
 
 
+##############################
+# Upload Loaction  functions #
+##############################
 def step_image_upload_location(instance, filename):
     return "steps/images/{}".format(filename)
 
 
-def step_audio_upload_location(instance, filename):
-    return "steps/audio/{}".format(filename)
+def anki_import_textfiles_upload_location(instance, filename):
+    return "anki_import_textfiles/{}".format(filename)
 
 
 def step_file_upload_location(instance, filename):
@@ -53,45 +60,12 @@ def audio_upload_location(instance, filename):
     return "audio/{}".format(filename)
 
 
-from imagekit.models import ImageSpecField, ProcessedImageField
-from imagekit.processors import ResizeToFill, Transpose
-
-from django.db import models
-
-
 def remove_tags_regex(string):
     return re.sub('<[^<]+?>', '', string)
 
 
 def image_upload_location(instance, filename):
     return "images/{}".format(filename)
-
-
-
-
-
-def get_definition(xml_string):
-    # find the word definition start and end indexes
-    index = xml_string.find("def")
-    index = xml_string.find("dt", index)
-    start_index = xml_string.find(":", index) + 1
-    end_index = xml_string.find("</dt>", start_index)
-
-    # select the string containing the definition
-    my_def = xml_string[start_index:end_index]
-
-    return my_def
-
-
-class IntegerRangeField(IntegerField):
-    def __init__(self, verbose_name=None, name=None, min_value=None, max_value=None, **kwargs):
-        self.min_value, self.max_value = min_value, max_value
-        models.IntegerField.__init__(self, verbose_name, name, **kwargs)
-
-    def formfield(self, **kwargs):
-        defaults = {'min_value': self.min_value, 'max_value': self.max_value}
-        defaults.update(kwargs)
-        return super(IntegerRangeField, self).formfield(**defaults)
 
 
 def venue_upload_location(instance, filename):
@@ -104,6 +78,22 @@ def userprofile_upload_location(instance, filename):
 
 def menu_upload_location(instance, filename):
     return "{}, Menu, {}".format(instance.venue.name, filename)
+
+
+##############################
+# Helper functions           #
+##############################
+def get_definition(xml_string):
+    # find the word definition start and end indexes
+    index = xml_string.find("def")
+    index = xml_string.find("dt", index)
+    start_index = xml_string.find(":", index) + 1
+    end_index = xml_string.find("</dt>", start_index)
+
+    # select the string containing the definition
+    my_def = xml_string[start_index:end_index]
+
+    return my_def
 
 
 def get_html_contents(html_string, tag, index=None, many=None):
@@ -141,6 +131,21 @@ def get_html_contents(html_string, tag, index=None, many=None):
             return None
 
 
+##############################
+# Models                     #
+##############################
+class IntegerRangeField(IntegerField):
+    def __init__(self, verbose_name=None, name=None,
+                 min_value=None, max_value=None, **kwargs):
+        self.min_value, self.max_value = min_value, max_value
+        models.IntegerField.__init__(self, verbose_name, name, **kwargs)
+
+    def formfield(self, **kwargs):
+        defaults = {'min_value': self.min_value, 'max_value': self.max_value}
+        defaults.update(kwargs)
+        return super(IntegerRangeField, self).formfield(**defaults)
+
+
 class Tag(Model):
     word = CharField(max_length=60)
     user = ForeignKey(User, related_name="tags", blank=True, null=True)
@@ -150,6 +155,20 @@ class Tag(Model):
 
     def __str__(self):
         return self.word
+
+
+
+class AnkiImportTextFile(Model):
+    file = FileField(upload_to=anki_import_textfiles_upload_location)
+    user = ForeignKey(User, related_name="anki_import_textfiles",
+                      blank=True, null=True)
+    title = CharField(max_length=80, null=True, blank=True)
+    timestamp = DateTimeField(editable=False, auto_now_add=True,
+                              auto_now=False, null=True, blank=True)
+    updated = models.DateTimeField(auto_now=True, blank=True, null=True)
+
+    def __str__(self):
+        return self.title
 
 
 class AudioRecording(Model):
@@ -163,7 +182,6 @@ class AudioRecording(Model):
 
     def __str__(self):
         return self.title
-
 
 
 
@@ -193,7 +211,6 @@ class Answer(Model):
         return self.answer
 
 
-
 class Exam(Model):
     created_by = ForeignKey(User, blank=True, null=True, related_name='exams')
     timestamp = DateTimeField(editable=False, auto_now_add=True,
@@ -201,21 +218,23 @@ class Exam(Model):
     name = CharField(max_length=80, null=True, blank=True)
     updated = models.DateTimeField(auto_now=True, blank=True, null=True)
     school_class = ForeignKey('SchoolClass', blank=True,
-                                     null=True, related_name="exams")
+                              null=True, related_name="exams")
+
     def __str__(self):
         return self.name
 
     def get_absolute_url(self):
         isDS = settings.IS_DEPLOYMENT_SERVER
         try:
-            url = 'http://112.74.48.237/exam/' if isDS else 'http://127.0.0.1:8000/exam/'
+            dsURL = 'http://112.74.48.237/exam/'
+            psURL = 'http://127.0.0.1:8000/exam/'
+            url = dsURL if isDS else psURL
             return url + str(self.id)
         except Exception as e:
             raise Exception("""
-                            Got Error {}. 
+                            Got Error {}.
                             Have you set the isDeploymentServer variable in settings.py?
                             """.format(e))
-
 
 
 class ExamPaperHelper(Model):
@@ -282,7 +301,7 @@ class TurnedInExam(Model):
                                null=True)
 
 
-class Subject(Model):
+class Course(Model):
     name = CharField(max_length=160)
     timestamp = DateTimeField(
         editable=False, auto_now_add=True, auto_now=False)
@@ -299,7 +318,7 @@ class SchoolClass(Model):
                          related_name="teacher_classes")
     students = ManyToManyField(
         User, blank=True, related_name="student_classes")
-    subject = ForeignKey('Subject', null=True, blank=True)
+    course = ForeignKey('Course', null=True, blank=True)
     timestamp = DateTimeField(
         editable=False, auto_now_add=True, auto_now=False)
     private = BooleanField(default=False, blank=True)
@@ -330,9 +349,14 @@ class SchoolClass(Model):
 
         students = self.students.all()
         try:
+            # Try to get class start achievement
+            # if this achievement hasn't been made yet
+            # then there will be an exception
             achievement  = Achievement.objects.get(school_class=self, 
                                                   name="Class Start Achievement")
         except:
+            # exception if class start achievement doesn't exist
+            # then we create the class start acheivement
             message = "Welcome to the start of a new learning adventure!"
             achievement = Achievement(name="Class Start Achievement",
                                       points=5, message=message,
@@ -340,6 +364,9 @@ class SchoolClass(Model):
             achievement.save()
 
         for student in students:
+
+            # We try to get the class start achievement relation record for the user
+            # if it doesn't exist we create a new record.
             try:
                 UserAchievement.objects.get(user=student,
                                             achievement=achievement)
@@ -434,6 +461,105 @@ class Word(Model):
     def populate_fields(self):
         json = self.full_json_response
 
+        soup = BS(json).entry
+
+        # get examples
+
+        try:
+            example = soup.dt.vi.extract() # extract from definition
+            self.example = str(example.text.encode('utf-8'))
+        except:
+            pass            
+        
+
+
+        # get prounciation
+        try:
+            self.pronunciation = str(soup.pr.text.encode('utf-8'))
+        except:
+            self.pronunciation = "No Pronunciation saved."
+
+        # get part of speech
+        try:
+            self.part_of_speech = str(soup.fl.text.encode('utf-8'))
+        except:
+            self.part_of_speech = "No Part of Speech"
+
+        # get origin
+        try:
+            self.origin = str(soup.et.text.encode('utf-8'))
+        except:
+            self.origin = "No Origin Saved"
+
+
+        # get syllables
+        try:
+            self.syllables = str(soup.hw.text.encode('utf-8'))
+        except:
+            self.syllables = "No Syllables saved."
+
+        # get other_usages
+        try:
+            # uro stands for undefined run-on entry
+            uros = soup.find_all('uro')
+            # import pdb; pdb.set_trace()
+            other_usages_string = ""
+            for index, uro in enumerate(uros):
+
+                # add other-usage word
+                temp_str = str(uro.ure.text.encode('utf-8'))
+
+                # add part of speech of the word.
+                temp_str += ": " + str(uro.fl.text.encode('utf-8'))
+
+                # add comma if not the last one.
+                if index != len(uros) -1:
+                    temp_str += ", "
+
+                other_usages_string += temp_str
+            self.other_usages = other_usages_string
+        except Exception as e:
+            print("Exception {}. Saved as no other usages instead. \n\n".format(e) * 10)
+            self.other_usages = "No Other Usages"
+
+
+
+        try:
+            definitions = soup.find_all('def')[0].find_all('dt')
+
+            # get defintion
+            count = 1
+            definition_string = ''
+            for definition in definitions:
+                temp_def_text = " {} - ".format(count)
+                temp_def_text += str(definition.text[1:].encode('utf-8'))
+
+                definition_string += temp_def_text
+                count += 1
+            self.definition = definition_string
+        except:
+            pass
+            # this is a weird error, handle for it later.
+            # can't think of why there wouldn't be any def
+
+
+
+
+
+        self.isPopulated = True
+
+        try:
+            self.save()
+        except:
+            raise Exception("There was problem saving!")
+        return json
+
+
+
+    def populate_fields_old(self):
+        json = self.full_json_response
+
+
         # get prounciation
         pronunciation = get_html_contents(json, 'wpr')
         self.pronunciation = remove_tags_regex(pronunciation)
@@ -488,16 +614,16 @@ class Word(Model):
 
     def make_string(self):
         word = self
-        entry = "{w.word}\t{w.definition}\t".format(w=word)
-        entry += "{w.part_of_speech}\t".format(w=word)
-        entry += "{w.syllables}\t".format(w=word)
+        entry = "{}\t{}\t".format(word.word.encode('utf8'), word.definition.encode('utf8'))
+        entry += "{}\t".format(word.part_of_speech.encode('utf8'))
+        entry += "{}\t".format(word.syllables.encode('utf8'))
         entry += "{}\t".format(word.origin.encode('utf8'))
-        entry += "{w.example}\t".format(w=word)
-        entry += "{w.synonyms}\t".format(w=word)
-        entry += "{w.antonyms}\t".format(w=word)
+        entry += "{}\t".format(word.example.encode('utf8'))
+        entry += "{}\t".format(word.synonyms.encode('utf8'))
+        entry += "{}\t".format(word.antonyms.encode('utf8'))
         entry += "{}\t".format(word.other_usages.encode('utf8'))
         entry += "{}\t".format(word.pronunciation.encode('utf8'))
-        entry += "{w.tags}\n".format(w=word)
+        entry += "{}\n".format(word)
         entry += "\n"
         return entry
 
@@ -843,7 +969,7 @@ def make_all_user_profiles(users_profiles=False, teachers_profiles=False, studen
 
 class TeacherProfile(models.Model):
     user = OneToOneField(User, related_name="teacher_profile")
-    subjects = ManyToManyField('Subject', related_name='teachers_profiles',
+    courses = ManyToManyField('Course', related_name='teachers_profiles',
                                blank=True)
 
     def __str__(self):

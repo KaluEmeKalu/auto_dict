@@ -1,7 +1,15 @@
 from . forms import UserLoginForm, CreateUserForm, UserImageForm
 
 
-from . models import SchoolClass
+from . models import SchoolClass, Course
+
+
+def courses_processor(request):
+    courses = Course.objects.all()
+    context = {'courses': courses}
+
+    return context
+
 
 def school_classes_processor(request):
     school_classes = SchoolClass.objects.all()

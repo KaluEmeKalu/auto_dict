@@ -12,7 +12,8 @@ from .models import (
     Answer,
     Selection,
     OldSelection,
-    Subject,
+    AnkiImportTextFile,
+    Course,
     StudentProfile,
     SchoolClass,
     TeacherProfile,
@@ -91,12 +92,12 @@ class SelectionAdmin(admin.ModelAdmin):
     list_display = ('answer', 'exam_paper', 'timestamp')
 
 
-class SubjectAdmin(admin.ModelAdmin):
+class CourseAdmin(admin.ModelAdmin):
     list_display = ('name', 'timestamp')
 
 
 class SchoolClassAdmin(admin.ModelAdmin):
-    list_display = ('name', 'teacher', 'subject', 'timestamp')
+    list_display = ('name', 'teacher', 'course', 'timestamp')
 
 
 class TeacherProfileAdmin(admin.ModelAdmin):
@@ -137,6 +138,11 @@ class AritcleAdmin(admin.ModelAdmin):
     list_display = ['title', 'timestamp', 'order', 'url', 'image']
 
 
+class AnkiImportTextFieldAdmin(admin.ModelAdmin):
+    list_display = ['file', 'user', 'title', 'timestamp']
+
+
+admin.site.register(AnkiImportTextFile, AnkiImportTextFieldAdmin)
 admin.site.register(Article, AritcleAdmin)
 admin.site.register(Step, StepAdmin)
 admin.site.register(Post, PostAdmin)
@@ -146,7 +152,7 @@ admin.site.register(UserAchievement, UserAchievementAdmin)
 admin.site.register(Achievement, AchievementAdmin)
 admin.site.register(SchoolClass, SchoolClassAdmin)
 admin.site.register(StudentProfile, StudentProfileAdmin)
-admin.site.register(Subject, SubjectAdmin)
+admin.site.register(Course, CourseAdmin)
 admin.site.register(Venue, VenueAdmin)
 admin.site.register(Review, ReviewAdmin)
 admin.site.register(UserProfile, UserProfileAdmin)

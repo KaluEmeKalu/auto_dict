@@ -82,7 +82,7 @@ Hello {{user.username}}!
                             <!-- Loop through Class Steps -->
                             {% for step in school_class.steps.all %}
                             <li>
-                                <a href="">{{step.name}}<span class="fa arrow"></span></a>
+                                <a href="{{step.url}}">{{step.name}}<span class="fa arrow"></span></a>
                                 
                                 
                                 <ul class="nav nav-third-level">

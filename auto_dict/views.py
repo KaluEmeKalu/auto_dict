@@ -1,3 +1,5 @@
+from time import gmtime, strftime
+from django.core.files import File
 from django.http import JsonResponse
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
@@ -24,6 +26,7 @@ from .models import (
     ExamPaper,
     SchoolClass,
     Exam,
+    AnkiImportTextFile,
     TurnedInExam,
     Selection,
     OldSelection,
@@ -61,12 +64,12 @@ def make_anki_text_from_scratch():
         f.write(content)
         f.close()
 
-    return HttpResponse(content, content_type='text/plain')        
+    return HttpResponse(content, content_type='text/plain')
 
 
 def make_anki_text(request):
 
-    #all_words = all_words if all_words else Word.objects.all()
+    # all_words = all_words if all_words else Word.objects.all()
     all_words = Word.objects.all()
     anki_header = Word.objects.first().anki_header()
     content = ''
@@ -78,7 +81,17 @@ def make_anki_text(request):
 
     with open("anki_doc.txt", 'w') as f:
         f.write(content)
-        f.close()
+
+    # now save as model with FileField
+    with open("anki_doc.txt", 'r') as f:
+        current_datetime = strftime("%Y-%m-%d_%H:%M:%S", gmtime())
+        title = 'new_anki' + current_datetime + '.txt'
+
+        anki_textfile = AnkiImportTextFile()
+        anki_textfile.title = title
+
+        djangofile = File(f)
+        anki_textfile.file.save(title, djangofile)
 
     return HttpResponse(content, content_type='text/plain')
 
@@ -516,9 +529,16 @@ def index(request):
     return render(request, 'auto_dict/index.html')
 
 
-def school_class_dashboard(request, school_class_id):
+def school_class_dashboard(request, school_class_id=None):
 
-    school_class = get_object_or_404(SchoolClass, pk=int(school_class_id))
+
+    # this if/else statement handles
+    # mapping to urls with a class id and those without.
+    if school_class_id:
+        school_class = get_object_or_404(SchoolClass, pk=int(school_class_id))
+    else:
+        school_class = SchoolClass.objects.first()
+
     school_class.give_students_class_achievement()
     students = school_class.students.all()
     post_form = PostForm()
