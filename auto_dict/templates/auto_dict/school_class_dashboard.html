@@ -61,13 +61,14 @@
                                     {% endif %}
 
                                     <!-- if Step Picture post picture -->
-                                    {% if step.image %}
-                                      <a href="{{ step.image.url }}"><img class="width60percent" src="{{ step.image.url }}"></a>
+                                    {% if step.images.all %}
+                                      {% for image in step.images.all %}
+                                        <a href="{{ image.url }}"><img class="width60percent" src="{{ image.url }}"></a>
+                                      {% endfor %}
                                     {% endif %}
 
                                     <!-- if Step Videp post picture -->
                                     {% for video in step.videos.all %}
-                                      Here is a video
                                       <video width="320" height="240" controls>
                                         <source src="{{video.file.url}}" type="video/mp4">
                                         Your browser does not support the video tag.

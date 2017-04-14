@@ -665,7 +665,7 @@ class Step(Model):
     url = CharField(max_length=300, blank=True, null=True)
 
     video = FileField(null=True, blank=True, upload_to=step_file_upload_location)
-    image = models.ManyToManyField('Image', blank=True,
+    images = models.ManyToManyField('Image', blank=True,
                               related_name='steps')
     videos = models.ManyToManyField('Video', blank=True,
                               related_name='steps')
