@@ -29,14 +29,9 @@
                                 {% for step in school_class.steps.all %}
 
                                   <!-- If first item add "active" class to make link active -->
-                                  {% if forloop.counter == 1 %}
-                                  <li class="active"><a href="#step{{step.id}}" data-toggle="tab">{{ forloop.counter }}) {{step.name}}</a>
+                                  <li class="{% if forloop.first %}active{% endif %}"><a href="#step{{step.id}}" data-toggle="tab">{{ forloop.counter }}) {{step.name}}</a>
                                   </li>
-                                  <!-- Else no class-->
-                                  {% else %}
-                                  <li class=""><a href="#step{{step.id}}" data-toggle="tab">{{ forloop.counter }}) {{step.name}}</a>
-                                  </li>
-                                  {% endif %}
+
 
                                 {% endfor %}
 
@@ -48,7 +43,8 @@
 
                                 <!-- For Loop for Steps -->
                                 {% for step in school_class.steps.all %}
-                                <div class="tab-pane fade active in" id="step{{step.id}}">
+                                <!-- Add active in classes if first in forloop -->
+                                <div class="tab-pane fade {% if forloop.first %}active in{% endif %}" id="step{{step.id}}">
                                     <h3>Overview</h3>
                                     
 
@@ -68,6 +64,16 @@
                                     {% if step.image %}
                                       <a href="{{ step.image.url }}"><img class="width60percent" src="{{ step.image.url }}"></a>
                                     {% endif %}
+
+                                    <!-- if Step Videp post picture -->
+                                    {% for video in step.videos.all %}
+                                      Here is a video
+                                      <video width="320" height="240" controls>
+                                        <source src="{{video.file.url}}" type="video/mp4">
+                                        Your browser does not support the video tag.
+                                      </video>
+
+                                    {% endfor %}
 
 
                                     <!-- If exam, post the exam link -->

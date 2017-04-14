@@ -21,6 +21,7 @@ from .models import (
     UserAchievement,
     Achievement,
     Article,
+    Video,
     Text,
     Step,
     Word)
@@ -128,7 +129,7 @@ class UserAchievementAdmin(admin.ModelAdmin):
 
 class StepAdmin(admin.ModelAdmin):
     list_display = ['name', 'school_class', 'description', 'order',
-                    'file', 'image', 'exam', 'url', 'timestamp']
+                    'exam', 'url', 'timestamp']
 
 class TextAdmin(admin.ModelAdmin):
     list_display = ['title', 'content', 'timestamp']
@@ -142,6 +143,10 @@ class AnkiImportTextFieldAdmin(admin.ModelAdmin):
     list_display = ['file', 'user', 'title', 'timestamp']
 
 
+class VideoAdmin(admin.ModelAdmin):
+    list_display = ['file', 'name', 'timestamp', 'updated']
+
+admin.site.register(Video, VideoAdmin)
 admin.site.register(AnkiImportTextFile, AnkiImportTextFieldAdmin)
 admin.site.register(Article, AritcleAdmin)
 admin.site.register(Step, StepAdmin)

@@ -45,6 +45,9 @@ def delete_error_words(word_obj):
 # Upload Loaction  functions #
 ##############################
 def step_image_upload_location(instance, filename):
+
+    filename = str(filename.decode('utf-8'))
+
     return "steps/images/{}".format(filename)
 
 
@@ -634,6 +637,25 @@ class Word(Model):
         return naturaltime(self.timestamp)
 
 
+class Video(Model):
+    file = FileField(null=True, blank=True, upload_to=step_file_upload_location)
+    name = CharField(max_length=180, blank=True, null=True)
+    timestamp = DateTimeField(
+        editable=False, auto_now_add=True, auto_now=False)
+    updated = models.DateTimeField(auto_now=True, blank=True, null=True)
+
+    def time_ago(self):
+        return naturaltime(self.timestamp)
+
+    def __str__(self):
+
+        try:
+            name = '{} Submitted Image on {}'.format(self.name, self.timestamp)
+        except:
+            name = 'Submitted Image on {}'.format(self.timestamp)
+        return name
+
+
 class Step(Model):
     name = CharField(max_length=180, blank=True, null=True)
     school_class = ForeignKey('SchoolClass', blank=True, null=True,
@@ -642,13 +664,11 @@ class Step(Model):
     order = models.IntegerField(default=0)
     url = CharField(max_length=300, blank=True, null=True)
 
-    file = FileField(null=True, blank=True, upload_to=step_file_upload_location)
-    image = ProcessedImageField(processors=[Transpose()],
-                                upload_to=step_image_upload_location,
-                                null=True,
-                                blank=True,
-                                format='JPEG',
-                                options={'quality': 60})
+    video = FileField(null=True, blank=True, upload_to=step_file_upload_location)
+    image = models.ManyToManyField('Image', blank=True,
+                              related_name='steps')
+    videos = models.ManyToManyField('Video', blank=True,
+                              related_name='steps')
     exam = ForeignKey('Exam', related_name='steps', null=True, blank=True)
     articles = ManyToManyField('Article', related_name="steps", blank=True)
     timestamp = DateTimeField(
