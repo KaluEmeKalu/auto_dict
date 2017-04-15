@@ -537,7 +537,7 @@ def school_class_dashboard(request, school_class_id=None):
     if school_class_id:
         school_class = get_object_or_404(SchoolClass, pk=int(school_class_id))
     else:
-        school_class = SchoolClass.objects.first()
+        school_class = SchoolClass.objects.get(pk=2)
 
     school_class.give_students_class_achievement()
     students = school_class.students.all()
