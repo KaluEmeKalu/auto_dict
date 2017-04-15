@@ -69,12 +69,13 @@
 
                                     <!-- if Step Videp post picture -->
                                     {% for video in step.videos.all %}
+                                      <p>{{video.name}}</p>
                                       <video width="320" height="240" controls>
                                         <source src="{{video.file.url}}" type="video/mp4">
                                         <source src="{{video.file.url}}" type="video/webm">
                                         Your browser does not support the video tag.
                                       </video>
-
+                                      <br>
                                     {% endfor %}
 
 

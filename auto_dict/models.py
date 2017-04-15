@@ -643,6 +643,7 @@ class Video(Model):
     timestamp = DateTimeField(
         editable=False, auto_now_add=True, auto_now=False)
     updated = models.DateTimeField(auto_now=True, blank=True, null=True)
+    order = models.IntegerField(default=0)
 
     def time_ago(self):
         return naturaltime(self.timestamp)
@@ -655,6 +656,10 @@ class Video(Model):
             name = 'Submitted Image on {}'.format(self.timestamp)
         return name
 
+
+    class Meta:
+        ordering = ['order', ]
+        
 
 class Step(Model):
     name = CharField(max_length=180, blank=True, null=True)
