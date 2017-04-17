@@ -223,5 +223,13 @@ function saveAnswer(answer_id, exam_paper_id, question_id) {
 // Load Video
 function loadVideo(video_id) {
     console.log("add video called");
-    $( "#video" + video_id + " .modal-body" ).load( "video/" + video_id +"/");
+    // $( "#video" + video_id + " .modal-body" ).load( "video/" + video_id +"/");
+
+
 }
+
+$('.myModal').modal({
+    show: false
+}).on('hidden.bs.modal', function(){
+    $(this).find('video')[0].pause();
+});
