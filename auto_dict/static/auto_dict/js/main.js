@@ -3,7 +3,6 @@ var deployment_url = 'http://112.74.48.237/save_answer/';
 var post_url = production_url;
 
 
-console.log(data22);
 // This loads date picker .and calendar image
 $( function() {
     $( ".datepicker" ).datepicker({
@@ -219,3 +218,10 @@ function saveAnswer(answer_id, exam_paper_id, question_id) {
 
     })//ajax close
 }//function Create Class close
+
+
+// Load Video
+function loadVideo(video_id) {
+    console.log("add video called");
+    $( "#video" + video_id + " .modal-body" ).load( "video/" + video_id +"/");
+}

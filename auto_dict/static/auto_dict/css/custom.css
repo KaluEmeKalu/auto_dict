@@ -5,6 +5,16 @@
   cursor: pointer;
 }
 
+/*Make Username Font Smaller on Class Assistants Profiles*/
+.main-text {
+  font-size: 100%;
+}
+
+/*Make Video Max Not Overflow Container*/
+video {
+  max-width: 100%;
+}
+
 /*Makes Question Picture Smaller*/
 .question_image,
 .width60percent {
@@ -227,7 +237,7 @@ font-size: 40px;
     margin: 0 0 3px;
 }
 .main-text {
-    font-size: 25px;
+    /*font-size: 25px;*/
     font-weight:600;
 }
 .set-icon {

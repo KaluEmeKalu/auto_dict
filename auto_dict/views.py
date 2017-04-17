@@ -13,7 +13,7 @@ from django.contrib import messages
 from django.views.generic.edit import CreateView
 from django.urls import reverse
 from datetime import datetime
-
+from django.views.generic.detail import DetailView
 import os, json
 try:
     from urllib2 import urlopen
@@ -32,8 +32,19 @@ from .models import (
     OldSelection,
     Answer,
     make_all_user_profiles,
-    Post
+    Post,
+    Video
 )
+
+
+class VideoDetailView(DetailView):
+
+    model = Video
+
+    # You can set this, to be explicit
+    # without it being set django will search for
+    #    model_name + detail.html  ('video_detail.html')
+    #template_name = 'auto_dict/ajax_registration.html'
 
 
 def bytes_to_string(bytes_obj):

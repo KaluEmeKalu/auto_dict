@@ -69,13 +69,36 @@
 
                                     <!-- if Step Videp post picture -->
                                     {% for video in step.videos.all %}
-                                      <p>{{video.name}}</p>
-                                      <video width="320" height="240" controls>
+                                      <a  data-toggle="modal" data-target="#video{{video.id}}" href="" onclick="loadVideo({{video.id}})"><p>{{video.name}}</p></a>
+                                      <!-- <video width="320" height="240" controls>
                                         <source src="{{video.file.url}}" type="video/mp4">
                                         <source src="{{video.file.url}}" type="video/webm">
                                         Your browser does not support the video tag.
                                       </video>
-                                      <br>
+                                      <br> -->
+
+                                        <!-- Video Modal -->    
+                                        <div class="modal fade" id="video{{video.id}}" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                                            <div class="modal-dialog">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                                                        <h4 class="modal-title" id="myModalLabel">{{video.name}}</h4>
+                                                    </div>
+
+                                                    <div class="modal-body">
+
+
+                                                        
+                                                    </div>
+
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <!-- End Video Modal -->
                                     {% endfor %}
 
 
@@ -137,7 +160,7 @@
                         {% if student.first_name or student.last_name %}
                         <p class="main-text">{{student.first_name}} {{student.last_name}}</p>
                         {% else %}
-                        <p class="main-text">{{student.username}}</p>
+                        <p class="main-text">{{student.username}}</p><br>
                         {% endif %}
                         <p class="text-muted">Professional Learner</p>
                     </div>
