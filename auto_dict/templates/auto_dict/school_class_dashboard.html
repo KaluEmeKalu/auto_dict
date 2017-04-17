@@ -81,7 +81,7 @@
 
                                     <!-- If exam, post the exam link -->
                                     {% if step.exam %}
-                                      <a href="{{step.exam.get_absolute_url}}">Take the Executive Function Quiz</a>
+                                      <a href="{{step.exam.get_absolute_url}}">{{step.exam.name}}</a>
                                     {% endif%}
 
 

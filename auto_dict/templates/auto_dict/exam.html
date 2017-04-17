@@ -33,15 +33,16 @@
                             {{forloop.counter}}) {{question.question}}
 
                             <!-- Selected Answer is showed here -->
-                            <span id="saved_answer{{question.id}}" class="label label-success">
-                            {% for answer in question.answers.all %}
-                              {% for selection in exam_paper.selections.all %}
-                              {% if answer == selection.answer %}
-                              {{ answer.answer }}
-                              {% endif %}
-                              {% endfor %}
-                            {% endfor %}
-                            </span>
+                            <!-- I added comment tags to get rid of white spaces between django tags. stupid, but eh. -->
+                            <span id="saved_answer{{question.id}}" class="label label-success"><!-- 
+                             -->{% for answer in question.answers.all %}<!-- 
+                               -->{% for selection in exam_paper.selections.all %}<!-- 
+                               -->{% if answer == selection.answer %}<!-- 
+                               -->{{ answer.answer }}<!-- 
+                               -->{% endif %}<!-- 
+                               -->{% endfor %}<!-- 
+                             -->{% endfor %}<!-- 
+                             --></span>
 
                             <!-- Questio Image if it exists -->
                             {% if question.image %}
