@@ -19,15 +19,15 @@ $('.basicExample').timepicker();
 // When Date Picker Changes Show Date Selected
     $('#datepicker').change(function() {
         $( ".spanDate" ).html($( "#datepicker" ).val() + 's');
-    })//end change
+    });//end change
 
     $('#datepicker2').change(function() {
         $( ".spanDate2" ).html($( "#datepicker2" ).val() + 's');
-    })//end change
+    });//end change
 
     $('#datepicker3').change(function() {
         $( ".spanDate3" ).html($( "#datepicker3" ).val() + 's');
-    })
+    });
 // When Date Picker Changes Show Date Selected End
 
 function Register() {
@@ -52,10 +52,10 @@ function Register() {
         }
 
 
-    })//ajax close
+    });//ajax close
 }//function Register close
 
-    console.log($('.student_form input[name=csrfmiddlewaretoken]').val())
+    console.log($('.student_form input[name=csrfmiddlewaretoken]').val());
 
 function CreateStudent() {
     $('.ajaxProgress').show();
@@ -79,7 +79,7 @@ function CreateStudent() {
         }
 
 
-    })//ajax close
+    });//ajax close
 }//function Register close
 
 function CreateClass() {
@@ -117,49 +117,49 @@ function CreateClass() {
         }
 
 
-    })//ajax close
+    });//ajax close
 }//function Create Class close
 
 // changes age visibility on is_adult change
 $('.age_input input').change(function() {
     if ($(this).attr('id') === 'under_18') {
-        $('#id_age').removeClass('age_hidden')
+        $('#id_age').removeClass('age_hidden');
     } else {
         $('#id_age').addClass('age_hidden');
         $('#id_age').val('');
     }
-})//end change
+});//end change
 
 // changes calendar visibility days change
 $('.days_of_class input').change(function() {
     if ($(this).attr('id') === '1day') {
-    	$('.day1').show('')
-        $('.day2').hide('')
-        $('.day3').hide('')
+    	$('.day1').show('');
+        $('.day2').hide('');
+        $('.day3').hide('');
     } else if ($(this).attr('id') === '2days') {
-    	$('.day1').show('')
-    	$('.day2').show('')
-        $('.day3').hide('')
+    	$('.day1').show('');
+    	$('.day2').show('');
+        $('.day3').hide('');
     }
 
     else {
-        $('.day1').show('')
-    	$('.day2').show('')
-        $('.day3').show('')
+        $('.day1').show('');
+    	$('.day2').show('');
+        $('.day3').show('');
     }
-})//end change
+});//end change
 
 // On Click Load Login
 function loadLogin() {
-    console.log("loading login")
+    console.log("loading login");
     $( "#loadLogin .modal-body" ).load( "login/");
-};
+}
 
 
 // On Click Load Register
 function loadRegister() {
     $( "#loadRegister .modal-body" ).load( "register/");
-};
+}
 
 // On Click Load Register
 
@@ -171,11 +171,11 @@ function loadChangeUserPic() {
 
         success: function(data) {
             console.log('WORKED! Success!!');
-            $( "#load_change_user_pic .modal-body" ).html(data)
+            $( "#load_change_user_pic .modal-body" ).html(data);
         }
 
 
-    })//ajax close
+    });//ajax close
 }//function load Change Class close
 
 
@@ -204,9 +204,9 @@ function saveAnswer(answer_id, exam_paper_id, question_id) {
 
         success: function(json) {
             console.log(json.the_status);
-            console.log("Shoudl say great!!!")
-            $( "#saved_answer" + question_id ).html(json.saved_answer)
-            console.log(json.saved_answer)
+            console.log("Shoudl say great!!!");
+            $( "#saved_answer" + question_id ).html(json.saved_answer);
+            console.log(json.saved_answer);
             console.log(json.error);
         },
 
@@ -216,14 +216,29 @@ function saveAnswer(answer_id, exam_paper_id, question_id) {
         }
 
 
-    })//ajax close
+    });//ajax close
 }//function Create Class close
 
+// Load Video
+// function loadVideo(video_id) {
+//     console.log("add video called");
+//     $.ajax({
+//         type: "GET",
+//         url: "video/" + video_id +"/",
+//         dataType: "html",
+//         async: true,
+
+//         success: function(data) {
+//             $( "#video" + video_id + " .modal-body" ).html(data);
+//         }//success close
+
+
+//     });//ajax close
+// }//function loadVideo close
 
 // Load Video
 function loadVideo(video_id) {
-    console.log("add video called");
-    // $( "#video" + video_id + " .modal-body" ).load( "video/" + video_id +"/");
+    $( "#video" + video_id + " .modal-body" ).load( "video/" + video_id +"/");
 
 
 }

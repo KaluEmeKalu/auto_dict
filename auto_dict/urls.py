@@ -22,6 +22,8 @@ urlpatterns = [
     url(r'^logout/$', views.user_logout, name="logout"),
     url(r'^change_user_image/$', views.change_user_image, name='change_user_image'),
     url(r'create_post/(?P<school_class_id>[0-9]+)/$', views.PostCreate.as_view(), name='create_post'),
-    url(r'^video/(?P<pk>[0-9]+)/$',
-        views.VideoDetailView.as_view(), name="video"),
+    # url(r'^video/(?P<pk>[0-9]+)/$',
+    #     views.VideoDetailView.as_view(), name="video"),
+    url(r'^video/(?P<video_id>[0-9]+)/$',
+        views.video_view, name="video"),
 ]

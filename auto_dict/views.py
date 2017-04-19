@@ -4,7 +4,7 @@ from django.http import JsonResponse
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.core.files import File
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import render, redirect, get_object_or_404, render_to_response
 from .make_url import make_url
 from django.http import HttpResponse, Http404, HttpResponseRedirect
 from . forms import UserLoginForm, CreateUserForm, UserImageForm, PostForm
@@ -14,7 +14,11 @@ from django.views.generic.edit import CreateView
 from django.urls import reverse
 from datetime import datetime
 from django.views.generic.detail import DetailView
-import os, json
+import os
+import json
+from django.template.loader import render_to_string
+
+# Get urlopen for python2 & python3
 try:
     from urllib2 import urlopen
 except:
@@ -36,15 +40,17 @@ from .models import (
     Video
 )
 
+# commented out because was getting weird
+# error with ajax where base index view was laoding
+# instead of video
+# class VideoDetailView(DetailView):
 
-class VideoDetailView(DetailView):
+#     model = Video
 
-    model = Video
-
-    # You can set this, to be explicit
-    # without it being set django will search for
-    #    model_name + detail.html  ('video_detail.html')
-    #template_name = 'auto_dict/ajax_registration.html'
+#     # You can set this, to be explicit
+#     # without it being set django will search for
+#     #    model_name + detail.html  ('video_detail.html')
+#     #template_name = 'auto_dict/ajax_registration.html'
 
 
 def bytes_to_string(bytes_obj):
@@ -58,11 +64,15 @@ def bytes_to_string(bytes_obj):
         return bytes_obj
 
 
+def video_view(request, video_id):
+    video = Video.objects.get(pk=video_id)
+
+    return render_to_response('auto_dict/video_detail.html', {'video': video})
+
+
 # refactor this to make same as make_anki_text
 def make_anki_text_from_scratch():
 
-
-    
     anki_header = Word.objects.first().anki_header()
     content = ''
     content += anki_header
@@ -277,9 +287,7 @@ def turn_in_exam(request, exam_paper_id):
 
     return render(request, 'auto_dict/exam.html', context)
 
-
     return HttpResponse("chill")
-
 
 
 # class SaveAudio(CreateView):
@@ -300,23 +308,21 @@ def turn_in_exam(request, exam_paper_id):
     #     context['key_sentence'] = int(self.kwargs['key_sentence'])
     #     return context
 
-    #def form_valid(self, form):
-        # key_sentence = KeySentence.objects.get(pk=self.kwargs['key_sentence'])
-        #form.save()
-        #form.user = self.request.user
-        # there's a mistake on this line
-        # form.instance.key_sentences.add(key_sentence)
-        #form.save()
-        #print("Audio added " * 88)
+    # def form_valid(self, form):
+    # key_sentence = KeySentence.objects.get(pk=self.kwargs['key_sentence'])
+    # form.save()
+    #form.user = self.request.user
+    # there's a mistake on this line
+    # form.instance.key_sentences.add(key_sentence)
+    # form.save()
+    #print("Audio added " * 88)
 
-        # return redirect('portals:index')
+    # return redirect('portals:index')
 
 
 def save_answer(request):
 
-
     if request.method == 'POST':
-
 
         answer_id = request.POST.get('answer_id', '').strip()
         exam_paper_id = request.POST.get('exam_paper_id', '').strip()
@@ -328,7 +334,7 @@ def save_answer(request):
                                                   exam_paper=exam_paper_obj)
 
         all_selections = Selection.objects.filter(exam_paper=exam_paper_obj)
-        
+
         # Check if question answered before
         questionAnsweredBefore = False
         for selection in all_selections:
@@ -349,16 +355,16 @@ def save_answer(request):
             selection_obj.save()
             print("Edited old selected! " * 50)
         else:
-        
+
             # if not previsouly answered, make new selection
             selection_obj = Selection(answer=answer_obj,
-                                  exam_paper=exam_paper_obj)
+                                      exam_paper=exam_paper_obj)
             selection_obj.save()
             print("Created new selected! " * 50)
 
-
         save_answer = selection_obj.answer.answer
-        response_data = {'the_status': "all is great!", 'saved_answer': save_answer}
+        response_data = {'the_status': "all is great!",
+                         'saved_answer': save_answer}
 
         # except:
         #     response_data['result'] = 'Oh No!'
@@ -367,9 +373,6 @@ def save_answer(request):
         return HttpResponse(json.dumps(response_data), content_type="application/json")
     else:
         raise Exception("Wasn't able to save answer")
-
-
-
 
 
 def exam(request, exam_id, turn_in=False):
@@ -393,8 +396,6 @@ def exam(request, exam_id, turn_in=False):
         context = {'exam': exam, 'exam_paper': exam_paper}
 
         return render(request, 'auto_dict/exam.html', context)
-
-    
 
     # get exam_paper if previous existed
     # if none create an exam paper
@@ -452,8 +453,7 @@ def word_search(request, anki_import=True):
                     f.write(content)
                     f.close()
 
-                return HttpResponse(content, content_type='text/plain')        
-
+                return HttpResponse(content, content_type='text/plain')
 
             return render(request, 'auto_dict/word_search.html', context)
         else:
@@ -505,7 +505,7 @@ def make_2d_arrays(your_list):
     final_list = []
     index = 0
 
-    #iterate through each list item
+    # iterate through each list item
     for item in your_list:
         # if divisible by 4
         if index % 4 == 0:
@@ -523,13 +523,12 @@ def make_2d_arrays(your_list):
                     else:
                         raise Exception(e.__str__() + " heyoo")
 
-            
             # append through_list to final_list
             final_list.append(through_list)
-    
+
     # if there's anything
     # left in original list
-    # append it to final_list            
+    # append it to final_list
     if your_list:
         final_list.append(your_list)
     return final_list
@@ -542,7 +541,6 @@ def index(request):
 
 def school_class_dashboard(request, school_class_id=None):
 
-
     # this if/else statement handles
     # mapping to urls with a class id and those without.
     if school_class_id:
@@ -554,8 +552,8 @@ def school_class_dashboard(request, school_class_id=None):
     students = school_class.students.all()
     post_form = PostForm()
     posts = school_class.posts.all()
-    
-    # turn django collection to 
+
+    # turn django collection to
     # regular python list
     students = [s for s in students]
 
@@ -578,6 +576,7 @@ class AjaxableResponseMixin(object):
     Mixin to add AJAX support to a form.
     Must be used with an object-based FormView (e.g. CreateView)
     """
+
     def form_invalid(self, form):
         response = super(AjaxableResponseMixin, self).form_invalid(form)
         if self.request.is_ajax():
@@ -604,7 +603,8 @@ class PostCreate(AjaxableResponseMixin, CreateView):
     fields = ['content']
 
     def form_valid(self, form):
-        school_class = SchoolClass.objects.get(pk=self.kwargs['school_class_id'])
+        school_class = SchoolClass.objects.get(
+            pk=self.kwargs['school_class_id'])
 
         form.instance.user = self.request.user
         form.instance.school_class = school_class
