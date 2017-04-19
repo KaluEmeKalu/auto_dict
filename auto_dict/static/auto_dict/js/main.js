@@ -1,7 +1,8 @@
-var production_url = 'http://127.0.0.1:8000/save_answer/';
-var deployment_url = 'http://112.74.48.237/save_answer/';
+var production_url = 'http://127.0.0.1:8000/';
+var deployment_url = 'http://112.74.48.237/';
 var post_url = production_url;
 
+save_answer_url = post_url + 'save_answer/';
 
 // This loads date picker .and calendar image
 $( function() {
@@ -55,7 +56,6 @@ function Register() {
     });//ajax close
 }//function Register close
 
-    console.log($('.student_form input[name=csrfmiddlewaretoken]').val());
 
 function CreateStudent() {
     $('.ajaxProgress').show();
@@ -192,7 +192,7 @@ function saveAnswer(answer_id, exam_paper_id, question_id) {
     $.ajax({
         type: "POST",
         // url: url,
-        url: post_url,
+        url: save_answer_url,
         dataType: "json",
         async: true,
         data: {
@@ -220,28 +220,29 @@ function saveAnswer(answer_id, exam_paper_id, question_id) {
 }//function Create Class close
 
 // Load Video
-// function loadVideo(video_id) {
-//     console.log("add video called");
-//     $.ajax({
-//         type: "GET",
-//         url: "video/" + video_id +"/",
-//         dataType: "html",
-//         async: true,
+function loadVideo(video_id) {
+    vid_url = post_url + "video/" + video_id +"/";
+    console.log(vid_url);
+    $.ajax({
+        type: "GET",
+        url: vid_url,
+        dataType: "html",
+        async: true,
 
-//         success: function(data) {
-//             $( "#video" + video_id + " .modal-body" ).html(data);
-//         }//success close
+        success: function(data) {
+            $( "#video" + video_id + " .modal-body" ).html(data);
+        }//success close
 
 
-//     });//ajax close
-// }//function loadVideo close
+    });//ajax close
+}//function loadVideo close
 
 // Load Video
-function loadVideo(video_id) {
-    $( "#video" + video_id + " .modal-body" ).load( "video/" + video_id +"/");
+// function loadVideo(video_id) {
+//     $( "#video" + video_id + " .modal-body" ).load( "video/" + video_id +"/");
 
 
-}
+// }
 
 $('.myModal').modal({
     show: false
