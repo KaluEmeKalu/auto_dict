@@ -29,7 +29,7 @@
                                 {% for step in school_class.steps.all %}
 
                                   <!-- If first item add "active" class to make link active -->
-                                  <li class="{% if forloop.first %}active{% endif %}"><a href="#step{{step.id}}" data-toggle="tab">{{ forloop.counter }}) {{step.name}}</a>
+                                  <li class="{% if forloop.first %}active{% endif %}"><a href="#step{{step.id}}" data-toggle="tab">Lesson {{ forloop.counter }}) {{step.name}}</a>
                                   </li>
 
 
@@ -50,26 +50,18 @@
 
                                     <p>{{step.description}}</p>
 
-                                    <!-- Add Download Button if File Exists -->
-                                    {% if step.file %}
-                                    <a href="{{step.file.url}}"><button class="btn btn-primary" >Download {{step.file.name}}</button></a><br>
-                                    {% endif %}
-                                    
-                                    <!-- Add Url Link if Url Link -->
-                                    {% if step.url %}
-                                    <p>Link: <a href="{{step.url}}">{{step.url}}</a></p>
-                                    {% endif %}
 
-                                    <!-- if Step Picture post picture -->
-                                    {% if step.images.all %}
-                                      {% for image in step.images.all %}
-                                        <a href="{{ image.url }}"><img class="width60percent" src="{{ image.url }}"></a>
-                                      {% endfor %}
+                                    {% if step.videos.all %}
+                                    <h3>Videos</h3>
                                     {% endif %}
-
                                     <!-- if Step Videp post picture -->
                                     {% for video in step.videos.all %}
-                                      <a  data-toggle="modal" data-target="#video{{video.id}}" href="" onclick="loadVideo({{video.id}})"><p>{{video.name}}</p></a>
+                                    <button onclick="mark_video_watched({{video.id}})" id="video_input{{video.id}}" type="button" class="btn {%if video.watched == True %}btn-primary {% else %} btn-default {% endif %} btn-circle"><i class="fa fa-check"></i></button>
+                                      <a class="video_modal_link"  data-toggle="modal" data-target="#video{{video.id}}" href="" onclick="loadVideo({{video.id}})">
+                                        <p>
+                                            <i class="fa fa-video-camera fa-fw"></i>{{video.name}}
+                                        </p>
+                                      </a><br>
                                       <!-- <video width="320" height="240" controls>
                                         <source src="{{video.file.url}}" type="video/mp4">
                                         <source src="{{video.file.url}}" type="video/webm">
@@ -105,6 +97,27 @@
                                         </div>
                                         <!-- End Video Modal -->
                                     {% endfor %}
+
+
+                                    <!-- Add Download Button if File Exists -->
+                                    {% if step.file %}
+                                    <a href="{{step.file.url}}"><button class="btn btn-primary" >Download {{step.file.name}}</button></a><br>
+                                    {% endif %}
+                                    
+
+                                    <!-- Add Url Link if Url Link -->
+                                    {% if step.url %}
+                                    <h3>Links</h3>
+                                    <p><a href="{{step.url}}">{{step.url}}</a></p>
+                                    {% endif %}
+
+                                    <!-- if Step Picture post picture -->
+                                    {% if step.images.all %}
+                                      {% for image in step.images.all %}
+                                        <a href="{{ image.url }}"><img class="width60percent" src="{{ image.url }}"></a>
+                                      {% endfor %}
+                                    {% endif %}
+
 
 
                                     <!-- If exam, post the exam link -->

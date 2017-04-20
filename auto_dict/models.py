@@ -644,6 +644,7 @@ class Video(Model):
         editable=False, auto_now_add=True, auto_now=False)
     updated = models.DateTimeField(auto_now=True, blank=True, null=True)
     order = models.IntegerField(default=0)
+    watched = BooleanField(default=False)
 
     def time_ago(self):
         return naturaltime(self.timestamp)

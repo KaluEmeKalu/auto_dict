@@ -5,6 +5,16 @@
   cursor: pointer;
 }
 
+/*Add Transition on Video Mark change*/
+.btn {
+  transition: 1s;
+}
+
+/*Make Video Links Inline*/
+.video_modal_link {
+  display: inline-block;
+}
+
 /*Make Username Font Smaller on Class Assistants Profiles*/
 .main-text {
   font-size: 100%;

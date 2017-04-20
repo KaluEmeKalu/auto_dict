@@ -320,6 +320,20 @@ def turn_in_exam(request, exam_paper_id):
     # return redirect('portals:index')
 
 
+def mark_video_watched(request, video_id):
+
+    
+    video = Video.objects.get(pk=video_id)
+
+    # Make video.watched  opposite of what
+    # it currently is.
+    video.watched = not video.watched
+    video.save()
+    response_data = {'watched': video.watched}
+
+
+    return HttpResponse(json.dumps(response_data), content_type="application/json")
+
 def save_answer(request):
 
     if request.method == 'POST':

@@ -219,6 +219,37 @@ function saveAnswer(answer_id, exam_paper_id, question_id) {
     });//ajax close
 }//function Create Class close
 
+// Mark Video Watched
+function mark_video_watched(video_id) {
+    vid_url = post_url + "mark_video_watched/" + video_id +"/";
+    console.log(vid_url);
+    $.ajax({
+        type: "GET",
+        url: vid_url,
+        dataType: "html",
+        async: true,
+
+        success: function(data) {
+            console.log(data, typeof data);
+            data = JSON.parse(data);
+            console.log(data.watched, typeof data);
+
+
+            // If video is watched switch checkmark icon class to show watched
+            // else switch to show not watched
+            if (data.watched === true) {
+                console.log("True statement entered");
+                $("#video_input" + video_id).attr('class', 'btn btn-primary btn-circle');
+            } else if (data.watched === false) {
+                console.log("False statement entered");
+                $("#video_input" + video_id).attr('class', 'btn btn-default btn-circle');
+            }
+        }//success close
+
+
+    });//ajax close
+}//function mark Video close
+
 // Load Video
 function loadVideo(video_id) {
     vid_url = post_url + "video/" + video_id +"/";

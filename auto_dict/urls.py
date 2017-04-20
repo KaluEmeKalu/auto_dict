@@ -26,4 +26,6 @@ urlpatterns = [
     #     views.VideoDetailView.as_view(), name="video"),
     url(r'^video/(?P<video_id>[0-9]+)/$',
         views.video_view, name="video"),
+    url(r'^mark_video_watched/(?P<video_id>[0-9]+)/$',
+        views.mark_video_watched, name="mark_video_watched")
 ]
