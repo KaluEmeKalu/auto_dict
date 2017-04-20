@@ -652,7 +652,7 @@ class Word(Model):
         entry += "{}\t".format(word.antonyms.encode('utf8'))
         entry += "{}\t".format(word.other_usages.encode('utf8'))
         entry += "{}\t".format(word.pronunciation.encode('utf8'))
-        entry += "{}\n".format(word)
+
         entry += "\n"
         return entry
 
