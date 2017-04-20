@@ -474,7 +474,7 @@ def word_search(request, anki_import=True):
                 filename = text = request.FILES['file'].name
 
                 response = HttpResponse(content_type='application/txt')
-                response['Content-Disposition'] = 'attachment; filename="{}_anki_import"'.format(filename)
+                response['Content-Disposition'] = 'attachment; filename="{}_anki_import.txt"'.format(filename)
                 response.write(content)
                 return response
 
