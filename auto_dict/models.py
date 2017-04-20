@@ -496,7 +496,7 @@ class Word(Model):
 
         try:
             example = soup.dt.vi.extract() # extract from definition
-            self.example = str(example.text.encode('utf-8'))
+            self.example = example.text
         except:
             pass            
         
@@ -504,26 +504,26 @@ class Word(Model):
 
         # get prounciation
         try:
-            self.pronunciation = str(soup.pr.text.encode('utf-8'))
+            self.pronunciation = soup.pr.text
         except:
             self.pronunciation = "No Pronunciation saved."
 
         # get part of speech
         try:
-            self.part_of_speech = str(soup.fl.text.encode('utf-8'))
+            self.part_of_speech = soup.fl.text
         except:
             self.part_of_speech = "No Part of Speech"
 
         # get origin
         try:
-            self.origin = str(soup.et.text.encode('utf-8'))
+            self.origin = soup.et.text
         except:
             self.origin = "No Origin Saved"
 
 
         # get syllables
         try:
-            self.syllables = str(soup.hw.text.encode('utf-8'))
+            self.syllables = soup.hw.text
         except:
             self.syllables = "No Syllables saved."
 
@@ -536,10 +536,10 @@ class Word(Model):
             for index, uro in enumerate(uros):
 
                 # add other-usage word
-                temp_str = str(uro.ure.text.encode('utf-8'))
+                temp_str = uro.ure.text
 
                 # add part of speech of the word.
-                temp_str += ": " + str(uro.fl.text.encode('utf-8'))
+                temp_str += ": " + uro.fl.text
 
                 # add comma if not the last one.
                 if index != len(uros) -1:
@@ -561,7 +561,7 @@ class Word(Model):
             definition_string = ''
             for definition in definitions:
                 temp_def_text = " {} - ".format(count)
-                temp_def_text += str(definition.text[1:].encode('utf-8'))
+                temp_def_text += definition.text[1:]
 
                 definition_string += temp_def_text
                 count += 1
@@ -644,16 +644,16 @@ class Word(Model):
 
     def make_string(self):
         word = self
-        entry = "{}\t{}\t".format(word.word.encode('utf8'), word.definition.encode('utf8'))
-        entry += "{}\t".format(word.part_of_speech.encode('utf8'))
-        entry += "{}\t".format(word.syllables.encode('utf8'))
+        entry = "{}\t{}\t".format(word.word, word.definition)
+        entry += "{}\t".format(word.part_of_speech)
+        entry += "{}\t".format(word.syllables)
         # entry += "{}\t".format(word.origin.encode('utf8'))
-        entry += "{}\t".format(word.example.encode('utf8'))
-        entry += "{}\t".format(word.synonyms.encode('utf8'))
-        entry += "{}\t".format(word.antonyms.encode('utf8'))
-        entry += "{}\t".format(word.other_usages.encode('utf8'))
+        entry += "{}\t".format(word.example)
+        entry += "{}\t".format(word.synonyms)
+        entry += "{}\t".format(word.antonyms)
+        entry += "{}\t".format(word.other_usages)
         entry += "{}\t".format("pliabl02.wav")
-        entry += "{}\t".format(word.pronunciation.encode('utf8'))
+        entry += "{}\t".format(word.pronunciation)
 
         entry += "\n"
         return entry
