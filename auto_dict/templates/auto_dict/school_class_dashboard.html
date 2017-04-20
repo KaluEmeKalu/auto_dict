@@ -21,6 +21,13 @@
                         {{school_class.name}} Steps
                         </div> -->
                         <div class="panel-body">
+                        <span class="percentage_class">{{school_class.get_percentage_completed}}</span>%
+                            <!-- Progress Bar -->
+                            <div class="progress progress-striped ">
+                              <div class="progress-bar progress-bar-info" role="progressbar" aria-valuenow="{{school_class.get_percentage_completed}}" aria-valuemin="0" aria-valuemax="100" style="width: {{school_class.get_percentage_completed}}%">
+                                <span class="sr-only">{{school_class.get_percentage_completed}}% Complete</span>
+                              </div>
+                            </div>
 
                             <!-- Steps Header Tabs -->
                             <ul class="nav nav-pills">

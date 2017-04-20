@@ -244,6 +244,12 @@ function mark_video_watched(video_id) {
                 console.log("False statement entered");
                 $("#video_input" + video_id).attr('class', 'btn btn-default btn-circle');
             }
+
+
+            // Update Progress Bar
+            $('.percentage_class').html(data.percentage);
+            $('.progress-bar.progress-bar-info').css('width', data.percentage + '%');
+
         }//success close
 
 

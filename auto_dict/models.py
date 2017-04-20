@@ -327,6 +327,29 @@ class SchoolClass(Model):
     private = BooleanField(default=False, blank=True)
     updated = models.DateTimeField(auto_now=True, blank=True, null=True)
 
+    def get_percentage_completed(self):
+        """
+        Returns a percentage float of representing
+        total videos watched / total step videos
+        """
+
+        # get list of ratio dictionaries from steps
+        ratio_watched_list = [step.get_ratio_watched() for step in self.steps.all()]
+
+        total = 0
+        watched = 0
+
+        # loop through list and increment total and watched
+        for ratio in ratio_watched_list:
+            watched += ratio['watched']
+            total += ratio['total']
+
+        # return percentage            
+        percentage = float(watched) / total
+        percentage = int(round(percentage * 100))
+        return percentage
+
+
 
     def get_json_points_data(self):
         """
@@ -680,6 +703,23 @@ class Step(Model):
     timestamp = DateTimeField(
         editable=False, auto_now_add=True, auto_now=False)
     updated = models.DateTimeField(auto_now=True, blank=True, null=True)
+
+    def get_ratio_watched(self):
+        """
+        Returns a dictionary with ratio of watched to unwatched
+        videos for the step.
+
+        The return will be used by SchoolClass method 
+        which will calculate percentage watched for all videos
+        """
+        videos = self.videos.all()
+        watched_videos = len([video for video in videos if video.watched])
+        ratio_watched = {'watched': watched_videos, 'total': len(videos)}
+
+        return ratio_watched
+
+
+
 
     def get_href(self):
         # if self.exam:

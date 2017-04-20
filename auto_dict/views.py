@@ -329,7 +329,9 @@ def mark_video_watched(request, video_id):
     # it currently is.
     video.watched = not video.watched
     video.save()
-    response_data = {'watched': video.watched}
+    percentage = video.steps.first().school_class.get_percentage_completed() # potential error. first step could belong to another course.
+
+    response_data = {'watched': video.watched, 'percentage': percentage}
 
 
     return HttpResponse(json.dumps(response_data), content_type="application/json")
