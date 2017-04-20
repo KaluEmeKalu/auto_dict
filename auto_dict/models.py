@@ -345,9 +345,12 @@ class SchoolClass(Model):
             total += ratio['total']
 
         # return percentage            
-        percentage = float(watched) / total
-        percentage = int(round(percentage * 100))
-        return percentage
+        try:
+            percentage = float(watched) / total
+            percentage = int(round(percentage * 100))
+            return percentage
+        except:
+            return 0
 
 
 
