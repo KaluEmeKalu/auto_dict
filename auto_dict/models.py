@@ -635,10 +635,11 @@ class Word(Model):
     def anki_header(self):
         text = "Front\tBack\t"
         text += "Part of speech\tSyllables\t"
-        text += "Origin\t"
+        # text += "Origin\t"
         text += "Used in sentence\t"
         text += "Synonyms\tAntonyms\t"
-        text += "Other usages\tPronunciation\tTags\n\n"
+        text += "Other usages\tSound File\t"
+        text += "Phonetic Pronunciation\tTags\n\n"
         return text
 
     def make_string(self):
@@ -646,11 +647,12 @@ class Word(Model):
         entry = "{}\t{}\t".format(word.word.encode('utf8'), word.definition.encode('utf8'))
         entry += "{}\t".format(word.part_of_speech.encode('utf8'))
         entry += "{}\t".format(word.syllables.encode('utf8'))
-        entry += "{}\t".format(word.origin.encode('utf8'))
+        # entry += "{}\t".format(word.origin.encode('utf8'))
         entry += "{}\t".format(word.example.encode('utf8'))
         entry += "{}\t".format(word.synonyms.encode('utf8'))
         entry += "{}\t".format(word.antonyms.encode('utf8'))
         entry += "{}\t".format(word.other_usages.encode('utf8'))
+        entry += "{}\t".format("pliabl02.wav")
         entry += "{}\t".format(word.pronunciation.encode('utf8'))
 
         entry += "\n"
