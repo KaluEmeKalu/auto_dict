@@ -114,6 +114,8 @@ def make_anki_text(request):
         djangofile = File(f)
         anki_textfile.file.save(title, djangofile)
 
+
+
     return HttpResponse(content, content_type='text/plain')
 
 
@@ -468,6 +470,11 @@ def word_search(request, anki_import=True):
                 with open("anki_doc.txt", 'w') as f:
                     f.write(content)
                     f.close()
+
+                response = HttpResponse(content_type='application/txt')
+                response['Content-Disposition'] = 'attachment; filename="somefilename.txt"'
+                response.write(content)
+                return response
 
                 return HttpResponse(content, content_type='text/plain')
 
