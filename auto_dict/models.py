@@ -448,6 +448,7 @@ class Word(Model):
     created_by = ForeignKey(User, blank=True, null=True)
     word = CharField(max_length=160, default="No Word Entry")
     definition = TextField(default="No Definition Entry")
+    audio_path = TextField(default="No Audio Path Entry")
     example = TextField(default="No Example Entry")
     origin = TextField(default="No Origin Entry")
     part_of_speech = TextField(
@@ -526,6 +527,12 @@ class Word(Model):
         except:
             self.syllables = "No Syllables saved."
 
+        # get sound_path
+        try:
+            self.sound_path = soup.sound.text
+        except:
+            self.sound_path = "No Sound Path"
+
         # get other_usages
         try:
             # uro stands for undefined run-on entry
@@ -549,8 +556,6 @@ class Word(Model):
             print("Exception {}. Saved as no other usages instead. \n\n".format(e) * 10)
             self.other_usages = "No Other Usages"
 
-
-
         try:
             # get all <dts> for first <def>
             definitions = soup.find_all('def')[0].find_all('dt')
@@ -559,8 +564,6 @@ class Word(Model):
             count = 1
             definition_string = ''
             example_string = ''
-
-
             # loop through each dt
             for definition in definitions:
                 
@@ -578,20 +581,11 @@ class Word(Model):
             self.definition = definition_string
             if example_string:
                 self.example = example_string
+
         except Exception as e:
             print( "You have an exception!! " * 10)
             print(e * 100)
 
-
-        except:
-            pass
-            # this is a weird error, handle for it later.
-            # can't think of why there wouldn't be any def
-
-
-
-
-
         self.isPopulated = True
 
         try:
@@ -602,48 +596,15 @@ class Word(Model):
 
 
 
-    def populate_fields_old(self):
-        json = self.full_json_response
 
 
-        # get prounciation
-        pronunciation = get_html_contents(json, 'wpr')
-        self.pronunciation = remove_tags_regex(pronunciation)
-
-        # get part of speech
-        part_of_speech = get_html_contents(json, 'fl')
-        self.part_of_speech = remove_tags_regex(part_of_speech)
-
-        # get origin
-        origin = get_html_contents(json, 'et')
-        self.origin = remove_tags_regex(origin)
-
-        # get other_usages
-        other_usages = get_html_contents(json, 'uro')
-        if other_usages:
-            self.other_usages = remove_tags_regex(other_usages)
-
-        # get syllables
-        syllables = get_html_contents(json, 'hw')
-        self.syllables = remove_tags_regex(syllables)
-
-        # get definition
-        definition = get_html_contents(json, 'dt')
-        definition = definition[1:]  # removes the colon
-        self.definition = remove_tags_regex(definition)
-
-        self.isPopulated = True
-
-        try:
-            self.save()
-        except:
-            raise Exception("There was problem saving!")
-        return json
-
-    # This runs upon save populated fieds
-    # if they haven't previously been
-    # populated.
     def save(self, *args, **kwargs):
+        """
+        This runs upon save populated fieds
+        
+        # if they haven't previously been
+        # populated.
+        """
         if not self.isPopulated:
             self.populate_fields()
 
@@ -669,7 +630,7 @@ class Word(Model):
         entry += "{}\t".format(word.synonyms)
         entry += "{}\t".format(word.antonyms)
         entry += "{}\t".format(word.other_usages)
-        entry += "{}\t".format("pliabl02.wav")
+        entry += "{}\t".format(word.sound_path)
         entry += "{}\t".format(word.pronunciation)
 
         entry += "\n"
