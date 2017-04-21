@@ -11,8 +11,7 @@ def make_url(word):
     # DICTIONARY_API_SECRET_KEY = "075n4nh-j53b-78b3-5439-8j56fgn3dce"
     secret_key = settings.DICTIONARY_API_SECRET_KEY
 
-    url = "http://www.dictionaryapi.com/api/v1/references/collegiate/xml/"
+    url = "http://www.dictionaryapi.com/api/v1/references/learners/xml/"
     url += word + "?key=" + secret_key
-
 
     return url

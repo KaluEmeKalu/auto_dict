@@ -495,12 +495,11 @@ class Word(Model):
         # get examples
 
         try:
-            example = soup.dt.vi.extract() # extract from definition
-            self.example = example.text
+            # example = soup.dt.vi.extract() # extract from definition
+            # self.example = example.text
+            pass
         except:
-            pass            
-        
-
+            pass    
 
         # get prounciation
         try:
@@ -531,7 +530,6 @@ class Word(Model):
         try:
             # uro stands for undefined run-on entry
             uros = soup.find_all('uro')
-            # import pdb; pdb.set_trace()
             other_usages_string = ""
             for index, uro in enumerate(uros):
 
@@ -554,18 +552,33 @@ class Word(Model):
 
 
         try:
+            # get all <dts> for first <def>
             definitions = soup.find_all('def')[0].find_all('dt')
 
             # get defintion
             count = 1
             definition_string = ''
+            example_string = ''
+
+
+            # loop through each dt
             for definition in definitions:
+                temp_example_text = " {} - ".format(count)
+                temp_example_text += definition.vi.extract().text
+
                 temp_def_text = " {} - ".format(count)
                 temp_def_text += definition.text[1:]
-
+                
                 definition_string += temp_def_text
+                example_string += temp_example_text
                 count += 1
             self.definition = definition_string
+            self.example = example_string
+        except Exception as e:
+            print( "You have an exception!! " * 10)
+            print(e * 100)
+
+
         except:
             pass
             # this is a weird error, handle for it later.
