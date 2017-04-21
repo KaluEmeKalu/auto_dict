@@ -563,17 +563,21 @@ class Word(Model):
 
             # loop through each dt
             for definition in definitions:
-                temp_example_text = " {} - ".format(count)
-                temp_example_text += definition.vi.extract().text
+                
+                if definition.vi:
+                    temp_example_text = " {} - ".format(count)
+                    temp_example_text += definition.vi.extract().text
+                    example_string += temp_example_text
 
                 temp_def_text = " {} - ".format(count)
                 temp_def_text += definition.text[1:]
                 
                 definition_string += temp_def_text
-                example_string += temp_example_text
+                
                 count += 1
             self.definition = definition_string
-            self.example = example_string
+            if example_string:
+                self.example = example_string
         except Exception as e:
             print( "You have an exception!! " * 10)
             print(e * 100)
