@@ -327,30 +327,49 @@ class SchoolClass(Model):
     private = BooleanField(default=False, blank=True)
     updated = models.DateTimeField(auto_now=True, blank=True, null=True)
 
-    def get_percentage_completed(self):
+    def get_percentage_completed(self, user):
         """
-        Returns a percentage float of representing
-        total videos watched / total step videos
+        Return a percentage float representing
+        total course achievements / user achievements
         """
+        total_achievements_count = len(self.achievements.all())
 
-        # get list of ratio dictionaries from steps
-        ratio_watched_list = [step.get_ratio_watched() for step in self.steps.all()]
+        user_achievements = user.user_achievements.filter(achievement__school_class=self)
+        video_achievements = user.video_achievements.filter(achievement__school_class=self)
 
-        total = 0
-        watched = 0
+        user_achievements_count = len(user_achievements) +  \
+                                  len(video_achievements)
 
-        # loop through list and increment total and watched
-        for ratio in ratio_watched_list:
-            watched += ratio['watched']
-            total += ratio['total']
+        percentage = float(user_achievements_count) / total_achievements_count
+        percentage = int(round(percentage * 100))
+        return percentage
 
-        # return percentage            
-        try:
-            percentage = float(watched) / total
-            percentage = int(round(percentage * 100))
-            return percentage
-        except:
-            return 0
+
+
+    # def get_percentage_completed(self):
+    #     """
+    #     Returns a percentage float of representing
+    #     total videos watched / total step videos
+    #     """
+
+    #     # get list of ratio dictionaries from steps
+    #     ratio_watched_list = [step.get_ratio_watched() for step in self.steps.all()]
+
+    #     total = 0
+    #     watched = 0
+
+    #     # loop through list and increment total and watched
+    #     for ratio in ratio_watched_list:
+    #         watched += ratio['watched']
+    #         total += ratio['total']
+
+    #     # return percentage            
+    #     try:
+    #         percentage = float(watched) / total
+    #         percentage = int(round(percentage * 100))
+    #         return percentage
+    #     except:
+    #         return 0
 
 
 
@@ -448,7 +467,7 @@ class Word(Model):
     created_by = ForeignKey(User, blank=True, null=True)
     word = CharField(max_length=160, default="No Word Entry")
     definition = TextField(default="No Definition Entry")
-    audio_path = TextField(default="No Audio Path Entry")
+    sound_path = TextField(default="No Audio Path Entry")
     example = TextField(default="No Example Entry")
     origin = TextField(default="No Origin Entry")
     part_of_speech = TextField(
@@ -501,6 +520,8 @@ class Word(Model):
             pass
         except:
             pass    
+
+            
 
         # get prounciation
         try:
@@ -651,6 +672,45 @@ class Video(Model):
     updated = models.DateTimeField(auto_now=True, blank=True, null=True)
     order = models.IntegerField(default=0)
     watched = BooleanField(default=False)
+    has_achievement = BooleanField(default=False)
+
+    def is_watched(self, user_id):
+        user = User.objects.get(pk=user_id)
+        try:
+            VideoAchievement.object.get(user=user, video=self)
+            return True
+        except:
+            return False
+
+
+    def get_or_create_achievement(self):
+        """
+        Get Achievement if it exists
+        If not create one.
+        """
+
+        try:
+            points = 20
+            name = self.name
+            message = "You have unlocked the {} achievement!".format(name)
+            school_class = self.steps.first().school_class # potential error. first step could belong to another course.
+            step = self.steps.first() # potential error. first step could belong to another course.
+
+            achievement, created = Achievement.objects.get_or_create(
+                name=name, message=message, school_class=school_class,
+                points=points, step=step)
+
+            achievement.save()
+
+            return achievement
+        except Exception as e:
+            print("Create Achievement Did not Work! Got following Error --> ")
+            print(e)
+
+
+    def make_achievement(self):
+        if self.has_achievement:
+            self.get_or_create_achievement()
 
     def time_ago(self):
         return naturaltime(self.timestamp)
@@ -767,6 +827,7 @@ class Article(Model):
     class Meta:
         ordering = ['order']
 
+
 class Text(Model):
     title = CharField(max_length=180, blank=True, null=True)
     content = TextField(blank=True, null=True)
@@ -799,14 +860,11 @@ class Achievement(Model):
         editable=False, auto_now_add=True, auto_now=False)
     updated = models.DateTimeField(auto_now=True, blank=True, null=True)
 
-
-
     def __str__(self):
         return self.name
 
     def time_ago(self):
         return naturaltime(self.timestamp)
-
 
 
 def get_achievement_points(user_obj):
@@ -815,34 +873,44 @@ def get_achievement_points(user_obj):
     points = 0
     for user_achievement in achievements:
         points += user_achievement.achievement.points
-    return points 
-    
+    return points
+
 
 class StepAchievementTable(Model):
     pass
 
 
+class VideoAchievement(Model):
+    video = ForeignKey('Video', related_name="video_achievements")
+    achievement = ForeignKey("Achievement", related_name="video_achievements")
+    user = ForeignKey(User, related_name="video_achievements")
+
+
+    def check_not_duplicate(self):
+        """
+        Checks to make suer
+        that no two video achiveemnts are the same.
+        """
+        pass
 
 class UserAchievement(Model):
     user = ForeignKey(User, null=True, blank=True,
                       related_name="user_achievements")
     achievement = ForeignKey('Achievement', null=True, blank=True,
                              related_name="user_achievements")
-
     timestamp = DateTimeField(
         editable=False, auto_now_add=True, auto_now=False)
     updated = models.DateTimeField(auto_now=True, blank=True, null=True)
 
     def __str__(self):
         try:
-            return '{} Achievement for {}. '.format(self.achievement.name, self.user.username)
+            return '{} Achievement for {}. '.format(self.achievement.name,
+                                                    self.user.username)
         except:
             return "No string available."
 
     def time_ago(self):
         return naturaltime(self.timestamp)
-
-
 
 
 class Post(Model):
@@ -861,6 +929,7 @@ class Post(Model):
 
     def get_absolute_url(self):
         return '/class/{}'.format(self.school_class.id)
+
 
 class WordSearch(Model):
     searched_by = ForeignKey(User, blank=True, null=True)
@@ -967,7 +1036,8 @@ class Image(models.Model):
         return naturaltime(self.timestamp)
 
 
-def make_all_user_profiles(users_profiles=False, teachers_profiles=False, student_profiles=False):
+def make_all_user_profiles(users_profiles=False, teachers_profiles=False,
+                           student_profiles=False):
     """
     Will create all user profiles by default if any are not yet created,
     if argument variable student_profiles is passed in
@@ -1055,6 +1125,7 @@ class UserProfile(models.Model):
         editable=False, auto_now_add=True, auto_now=False)
     updated = models.DateTimeField(auto_now=True, blank=True, null=True)
     points = IntegerField(default=0, blank=True, null=True)
+
 
     def __str__(self):
         return '{} Profile'.format(self.user.username)

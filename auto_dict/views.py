@@ -35,6 +35,8 @@ from .models import (
     Selection,
     OldSelection,
     Answer,
+    Achievement,
+    VideoAchievement,
     make_all_user_profiles,
     Post,
     Video
@@ -322,19 +324,40 @@ def turn_in_exam(request, exam_paper_id):
     # return redirect('portals:index')
 
 
-def mark_video_watched(request, video_id):
+# def mark_video_watched(request, video_id):
 
     
+#     video = Video.objects.get(pk=video_id)
+
+#     # Make video.watched  opposite of what
+#     # it currently is.
+#     video.watched = not video.watched
+#     video.save()
+#     percentage = video.steps.first().school_class.get_percentage_completed() # potential error. first step could belong to another course.
+
+#     response_data = {'watched': video.watched, 'percentage': percentage}
+
+
+def toggle_video_watched(request, video_id):
+
     video = Video.objects.get(pk=video_id)
+    achievement = video.get_or_create_achievement()
 
-    # Make video.watched  opposite of what
-    # it currently is.
-    video.watched = not video.watched
-    video.save()
-    percentage = video.steps.first().school_class.get_percentage_completed() # potential error. first step could belong to another course.
+    # delete video achievement if user has one, 
+    # if user doesn't have a video achievement create one
+    try:
+        video_achievement = VideoAchievement.objects.get(
+            achievement=achievement, user=request.user, video_id=video_id)
+        video_achievement.delete()
+        isWatched = False
+    except:
+        video_achievement = VideoAchievement.objects.create(
+            achievement=achievement, user=request.user, video_id=video_id)
+        isWatched = True
 
-    response_data = {'watched': video.watched, 'percentage': percentage}
+    percentage = video.steps.first().school_class.get_percentage_completed(request.user)
 
+    response_data = {'watched': isWatched, 'percentage': percentage}
 
     return HttpResponse(json.dumps(response_data), content_type="application/json")
 

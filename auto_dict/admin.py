@@ -72,6 +72,10 @@ class SelectionInline(admin.StackedInline):
 class OldSelectionInline(admin.StackedInline):
     model = OldSelection
 
+
+class AchievementInline(admin.StackedInline):
+    model = Achievement
+
 class QuestionAdmin(admin.ModelAdmin):
     list_display = ('question', 'exam', 'image')
     inlines = [AnswerInline, ]
@@ -99,7 +103,7 @@ class CourseAdmin(admin.ModelAdmin):
 
 class SchoolClassAdmin(admin.ModelAdmin):
     list_display = ('name', 'teacher', 'course', 'timestamp')
-
+    inlines = [AchievementInline]
 
 class TeacherProfileAdmin(admin.ModelAdmin):
     list_display = ('user',)

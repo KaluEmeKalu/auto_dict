@@ -27,5 +27,5 @@ urlpatterns = [
     url(r'^video/(?P<video_id>[0-9]+)/$',
         views.video_view, name="video"),
     url(r'^mark_video_watched/(?P<video_id>[0-9]+)/$',
-        views.mark_video_watched, name="mark_video_watched")
+        views.toggle_video_watched, name="toggle_video_watched")
 ]
