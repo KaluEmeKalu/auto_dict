@@ -605,7 +605,7 @@ class Word(Model):
 
         except Exception as e:
             print( "You have an exception!! " * 10)
-            print(e * 100)
+            print(e)
 
         self.isPopulated = True
 
@@ -627,7 +627,11 @@ class Word(Model):
         # populated.
         """
         if not self.isPopulated:
-            self.populate_fields()
+            try:
+                self.populate_fields()
+            except Exception as e:
+                print("\n\npopulate_fields failed. With this exception -->", e, '\n\n')
+
 
         super(Word, self).save(*args, **kwargs)
 
