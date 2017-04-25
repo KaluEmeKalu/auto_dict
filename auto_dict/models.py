@@ -599,7 +599,19 @@ class Word(Model):
                 url = 'http://media.merriam-webster.com/soundc11/'
 
                 path = self.sound_path 
-                url += '{}/{}'.format(path[0], path)
+
+                # making url in according to api
+                # http://www.dictionaryapi.com/info/faq-audio-image.htm#learners
+                if path[0:3] == "bix":
+                    subd = "bix"
+                elif path[0:2] == "gg":
+                    subd = "gg"
+                elif not path[0].isalpha:
+                    subd = "number"
+                else:
+                    subd = path[0]
+
+                url += '{}/{}'.format(subd, path)
                 print("\n\nAttempting to Open {} ".format(url))
                 response = urlopen(url)
                 print("\n\nOpened!! Attempting to read! {} ".format(url))
