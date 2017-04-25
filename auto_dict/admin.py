@@ -144,7 +144,7 @@ class AritcleAdmin(admin.ModelAdmin):
 
 
 class AnkiImportTextFieldAdmin(admin.ModelAdmin):
-    list_display = ['file', 'user', 'title', 'timestamp']
+    list_display = ['id', 'file', 'user', 'title', 'timestamp']
 
 
 class VideoAdmin(admin.ModelAdmin):

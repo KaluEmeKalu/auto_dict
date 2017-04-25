@@ -17,6 +17,10 @@ from django.views.generic.detail import DetailView
 import os
 import json
 from django.template.loader import render_to_string
+from django.core.files.uploadedfile import InMemoryUploadedFile
+import zipfile
+# import StringIO
+
 
 # Get urlopen for python2 & python3
 try:
@@ -115,8 +119,6 @@ def make_anki_text(request):
 
         djangofile = File(f)
         anki_textfile.file.save(title, djangofile)
-
-
 
     return HttpResponse(content, content_type='text/plain')
 
@@ -326,14 +328,15 @@ def turn_in_exam(request, exam_paper_id):
 
 # def mark_video_watched(request, video_id):
 
-    
+
 #     video = Video.objects.get(pk=video_id)
 
 #     # Make video.watched  opposite of what
 #     # it currently is.
 #     video.watched = not video.watched
 #     video.save()
-#     percentage = video.steps.first().school_class.get_percentage_completed() # potential error. first step could belong to another course.
+# percentage = video.steps.first().school_class.get_percentage_completed()
+# # potential error. first step could belong to another course.
 
 #     response_data = {'watched': video.watched, 'percentage': percentage}
 
@@ -343,7 +346,7 @@ def toggle_video_watched(request, video_id):
     video = Video.objects.get(pk=video_id)
     achievement = video.get_or_create_achievement()
 
-    # delete video achievement if user has one, 
+    # delete video achievement if user has one,
     # if user doesn't have a video achievement create one
     try:
         video_achievement = VideoAchievement.objects.get(
@@ -360,6 +363,7 @@ def toggle_video_watched(request, video_id):
     response_data = {'watched': isWatched, 'percentage': percentage}
 
     return HttpResponse(json.dumps(response_data), content_type="application/json")
+
 
 def save_answer(request):
 
@@ -485,23 +489,57 @@ def word_search(request, anki_import=True):
                 anki_header = Word.objects.first().anki_header()
                 content = ''
                 content += anki_header
+                anki_import_obj = AnkiImportTextFile()
+                anki_import_obj.save()
 
                 for word in found_words:
+                    anki_import_obj.words.add(word)
+                    anki_import_obj.save()
+
                     text = word.make_string()
                     content += text
 
-                with open("anki_doc.txt", 'w') as f:
+                # make datetime string and folder name
+                datetime_string = datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
+                folder_name = 'anki_import_{}/'.format(datetime_string)
+
+                # make folder if it doesn't exist
+                if not os.path.exists(folder_name):
+                    os.makedirs(folder_name)
+
+                # save text file
+                filepath = folder_name + "anki_doc.txt"
+                with open(filepath, 'w') as f:
                     f.write(content)
                     f.close()
 
-                filename = text = request.FILES['file'].name
+                # add textfile to new AnkiImport Instance
+                with open(filepath, 'r') as f:
+                    the_file = File(f)
+                    anki_import_obj.title = datetime_string
+                    anki_import_obj.file.save(
+                        'anki_doc.txt{}'.format(datetime_string), the_file
+                    )
+                    anki_import_obj.save()
 
+
+                filename = request.FILES['file'].name
+
+                # create response
                 response = HttpResponse(content_type='application/txt')
-                response['Content-Disposition'] = 'attachment; filename="{}_anki_import.txt"'.format(filename)
+                
+                # make it an attachment so that it is download by browser
+                # and give it a filename of  *filename*_anki_import.txt
+                response[
+                    'Content-Disposition'] = 'attachment; filename="{}_anki_import.txt"'.format(filename)
+                
+                # write content in response and return it
                 response.write(content)
-                return response
 
-                return HttpResponse(content, content_type='text/plain')
+
+                # return response ***TEST CODE***
+                response = anki_import_obj.getfiles()
+                return response
 
             return render(request, 'auto_dict/word_search.html', context)
         else:

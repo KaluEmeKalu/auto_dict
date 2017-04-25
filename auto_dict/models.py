@@ -4,6 +4,7 @@
 
 # django Imports
 from django.conf import settings
+from django.core.files import File
 from django.contrib.staticfiles.templatetags.staticfiles import static
 from django.db.models import Model
 from django.contrib.auth.models import User
@@ -23,16 +24,39 @@ from django.db.models import (
     ManyToManyField,
     FileField
 )
+from django.http import HttpResponse
+from django.core.files.uploadedfile import InMemoryUploadedFile
 
 # python imports
 import re
 import math
 import json
+import os
+import os
+import zipfile
+
+
 
 # others
 from imagekit.models import ImageSpecField, ProcessedImageField
 from imagekit.processors import ResizeToFill, Transpose
 from bs4 import BeautifulSoup as BS
+import datetime
+try:
+    from StringIO import StringIO as BytesIO
+except ImportError:
+    from io import BytesIO
+
+# Get urlopen for python2 & python3
+try:
+    from urllib2 import urlopen
+except:
+    from urllib.request import urlopen
+
+
+##############################
+# Upload Loaction  functions #
+##############################
 
 def delete_error_words(word_obj):
     error_words = [word for word in Word.objects.all(
@@ -41,9 +65,6 @@ def delete_error_words(word_obj):
         word.delete()
 
 
-##############################
-# Upload Loaction  functions #
-##############################
 def step_image_upload_location(instance, filename):
 
     filename = str(filename.decode('utf-8'))
@@ -57,6 +78,10 @@ def anki_import_textfiles_upload_location(instance, filename):
 
 def step_file_upload_location(instance, filename):
     return "steps/files/{}".format(filename)
+
+
+def zip_upload_location(instance, filename):
+    return "zips/{}".format(filename)
 
 
 def audio_upload_location(instance, filename):
@@ -162,16 +187,69 @@ class Tag(Model):
 
 
 class AnkiImportTextFile(Model):
-    file = FileField(upload_to=anki_import_textfiles_upload_location)
+    file = FileField(null=True, blank=True, upload_to=anki_import_textfiles_upload_location)
     user = ForeignKey(User, related_name="anki_import_textfiles",
                       blank=True, null=True)
     title = CharField(max_length=80, null=True, blank=True)
     timestamp = DateTimeField(editable=False, auto_now_add=True,
                               auto_now=False, null=True, blank=True)
     updated = models.DateTimeField(auto_now=True, blank=True, null=True)
+    words = ManyToManyField('Word', blank=True)
+    zip_stored = ForeignKey('ZipStored', blank=True, null=True)
 
     def __str__(self):
-        return self.title
+        try:
+            return self.title
+        except:
+            return "Anki Import Object"
+
+    def get_wav_filepaths(self):
+        words = self.words.all()
+        words = [word for word in words if word.audio_file]
+
+        filepaths = [word.audio_file.file.url for word in words]
+        # add  anki import .txt file filepath
+        filepaths.append(self.file.url)
+
+        return filepaths
+
+
+
+    def getfiles(self):
+        # Files (local path) to put in the .zip
+        # FIXME: Change this (get paths from DB etc)
+        filenames = self.get_wav_filepaths()
+
+        # Folder name in ZIP archive which contains the above files
+        # E.g [thearchive.zip]/somefiles/file2.txt
+        # FIXME: Set this to something better
+        zip_subdir = "somefiles"
+        zip_filename = "%s.zip" % zip_subdir
+
+        # Open StringIO to grab in-memory ZIP contents
+        s = BytesIO()
+
+        # The zip compressor
+        zf = zipfile.ZipFile(s, "w")
+
+        for fpath in filenames:
+            # Calculate path for file in zip
+            fdir, fname = os.path.split(fpath)
+            zip_path = os.path.join(zip_subdir, fname)
+
+            # Add file, at correct path
+
+            zf.write(os.getcwd() + fpath, zip_path)
+
+        # Must close zip for all contents to be written
+        zf.close()
+
+        # Grab ZIP file from in-memory, make response with correct MIME-type
+        resp = HttpResponse(s.getvalue(), content_type = "application/x-zip-compressed")
+        # ..and correct content-disposition
+        resp['Content-Disposition'] = 'attachment; filename=%s' % zip_filename
+
+        return resp
 
 
 class AudioRecording(Model):
@@ -184,7 +262,10 @@ class AudioRecording(Model):
     updated = models.DateTimeField(auto_now=True, blank=True, null=True)
 
     def __str__(self):
-        return self.title
+        try:
+            return self.title
+        except:
+            return "An audio recording object without title"
 
 
 
@@ -463,6 +544,7 @@ class OldSelection(AbstractSelection):
     old_updated_timestamp = models.DateTimeField(blank=True, null=True)
 
 
+
 class Word(Model):
     created_by = ForeignKey(User, blank=True, null=True)
     word = CharField(max_length=160, default="No Word Entry")
@@ -481,6 +563,7 @@ class Word(Model):
                               default="No Pronunciation Entry")
     tags = TextField(default="No Tags Entry")
     audio = TextField(default="No Audio Entry")
+    audio_file = ForeignKey('AudioRecording', null=True, blank=True)
     full_json_response = TextField(blank=True, null=True)
     timestamp = DateTimeField(
         editable=False, auto_now_add=True, auto_now=False)
@@ -506,6 +589,45 @@ class Word(Model):
             self.definition = re.sub('<[^<]+?>', '', self.definition)
 
             self.save()
+
+    def download_audio(self):
+
+        try:
+
+            no_audio_path = ("No Audio Path Entry", "No Sound Path")
+            if self.sound_path and self.sound_path not in no_audio_path:
+                url = 'http://media.merriam-webster.com/soundc11/'
+
+                path = self.sound_path 
+                url += '{}/{}'.format(path[0], path)
+                print("\n\nAttempting to Open {} ".format(url))
+                response = urlopen(url)
+                print("\n\nOpened!! Attempting to read! {} ".format(url))
+                content = response.read()
+                print("\n\n Successfully Read!! {} \n\n".format(url))
+                
+
+                with open(path, 'wb') as f:
+                    f.write(content)
+
+                with open(path, 'rb') as f:
+                    the_file = File(f)
+                    audio = AudioRecording()
+                    audio.file.save(path, the_file)
+                    audio.title = "{} wav soundfile".format(self.word)
+                    self.save()
+
+                    self.audio_file = audio
+                    self.save()
+            else:
+                print("No Audio Path!")
+                print(self.sound_path)
+        except Exception as e:
+            print("\ndid not save audio!!! \n" * 20)
+            print(e)
+
+
+
 
     def populate_fields(self):
         json = self.full_json_response
@@ -629,8 +751,9 @@ class Word(Model):
         if not self.isPopulated:
             try:
                 self.populate_fields()
+                self.download_audio()
             except Exception as e:
-                print("\n\npopulate_fields failed. With this exception -->", e, '\n\n')
+                print("\n\npopulate_fields or download_audio failed. With this exception -->", e, '\n\n')
 
 
         super(Word, self).save(*args, **kwargs)
@@ -666,6 +789,11 @@ class Word(Model):
 
     def time_ago(self):
         return naturaltime(self.timestamp)
+
+
+class ZipStored(Model):
+    zip = FileField(upload_to=zip_upload_location)
+
 
 
 class Video(Model):
