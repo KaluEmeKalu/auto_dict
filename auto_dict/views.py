@@ -510,7 +510,7 @@ def word_search(request, anki_import=True):
                     os.makedirs(folder_name)
 
                 # save text file
-                filepath = folder_name + "anki_doc.txt"
+                filepath = folder_name + filename
                 with open(filepath, 'w') as f:
                     f.write(content)
                     f.close()
@@ -520,7 +520,7 @@ def word_search(request, anki_import=True):
                     the_file = File(f)
                     anki_import_obj.title = datetime_string
                     anki_import_obj.file.save(
-                        'anki_doc.txt{}'.format(datetime_string), the_file
+                        '{}-{}'.format(filename, datetime_string), the_file
                     )
                     anki_import_obj.save()
 
