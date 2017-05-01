@@ -191,6 +191,7 @@ class AnkiImportTextFile(Model):
     user = ForeignKey(User, related_name="anki_import_textfiles",
                       blank=True, null=True)
     title = CharField(max_length=80, null=True, blank=True)
+    filename = CharField(max_length=80, null=True, blank=True)
     timestamp = DateTimeField(editable=False, auto_now_add=True,
                               auto_now=False, null=True, blank=True)
     updated = models.DateTimeField(auto_now=True, blank=True, null=True)
@@ -223,7 +224,7 @@ class AnkiImportTextFile(Model):
         # Folder name in ZIP archive which contains the above files
         # E.g [thearchive.zip]/somefiles/file2.txt
         # FIXME: Set this to something better
-        zip_subdir = "somefiles"
+        zip_subdir = self.filename
         zip_filename = "%s.zip" % zip_subdir
 
         # Open StringIO to grab in-memory ZIP contents
@@ -262,9 +263,9 @@ class AudioRecording(Model):
     updated = models.DateTimeField(auto_now=True, blank=True, null=True)
 
     def __str__(self):
-        try:
+        if self.title:
             return self.title
-        except:
+        else:
             return "An audio recording object without title"
 
 
@@ -592,51 +593,52 @@ class Word(Model):
 
     def download_audio(self):
 
-        try:
+        if not self.audio_file:
+            try:
 
-            no_audio_path = ("No Audio Path Entry", "No Sound Path")
-            if self.sound_path and self.sound_path not in no_audio_path:
-                url = 'http://media.merriam-webster.com/soundc11/'
+                no_audio_path = ("No Audio Path Entry", "No Sound Path")
+                if self.sound_path and self.sound_path not in no_audio_path:
+                    url = 'http://media.merriam-webster.com/soundc11/'
 
-                path = self.sound_path 
+                    path = self.sound_path 
 
-                # making url in according to api
-                # http://www.dictionaryapi.com/info/faq-audio-image.htm#learners
-                if path[0:3] == "bix":
-                    subd = "bix"
-                elif path[0:2] == "gg":
-                    subd = "gg"
-                elif not path[0].isalpha:
-                    subd = "number"
+                    # making url in according to api
+                    # http://www.dictionaryapi.com/info/faq-audio-image.htm#learners
+                    if path[0:3] == "bix":
+                        subd = "bix"
+                    elif path[0:2] == "gg":
+                        subd = "gg"
+                    elif not path[0].isalpha:
+                        subd = "number"
+                    else:
+                        subd = path[0]
+
+                    url += '{}/{}'.format(subd, path)
+                    print("\n\nAttempting to Open {} ".format(url))
+                    response = urlopen(url)
+                    print("\n\nOpened!! Attempting to read! {} ".format(url))
+                    content = response.read()
+                    print("\n\n Successfully Read!! {} \n\n".format(url))
+                    
+
+                    with open(path, 'wb') as f:
+                        f.write(content)
+
+                    with open(path, 'rb') as f:
+                        the_file = File(f)
+                        audio = AudioRecording()
+                        audio.file.save(path, the_file)
+                        audio.title = "{} wav soundfile".format(self.word)
+                        self.save()
+
+                        self.audio_file = audio
+                        self.save()
                 else:
-                    subd = path[0]
-
-                url += '{}/{}'.format(subd, path)
-                print("\n\nAttempting to Open {} ".format(url))
-                response = urlopen(url)
-                print("\n\nOpened!! Attempting to read! {} ".format(url))
-                content = response.read()
-                print("\n\n Successfully Read!! {} \n\n".format(url))
-                
-
-                with open(path, 'wb') as f:
-                    f.write(content)
-
-                with open(path, 'rb') as f:
-                    the_file = File(f)
-                    audio = AudioRecording()
-                    audio.file.save(path, the_file)
-                    audio.title = "{} wav soundfile".format(self.word)
-                    self.save()
-
-                    self.audio_file = audio
-                    self.save()
-            else:
-                print("No Audio Path!")
-                print(self.sound_path)
-        except Exception as e:
-            print("\ndid not save audio!!! \n" * 20)
-            print(e)
+                    print("No Audio Path!")
+                    print(self.sound_path)
+            except Exception as e:
+                print("\ndid not save audio!!! \n" * 20)
+                print(e)
 
 
 

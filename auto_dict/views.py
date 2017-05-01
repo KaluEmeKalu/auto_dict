@@ -489,7 +489,9 @@ def word_search(request, anki_import=True):
                 anki_header = Word.objects.first().anki_header()
                 content = ''
                 content += anki_header
+                filename = request.FILES['file'].name
                 anki_import_obj = AnkiImportTextFile()
+                anki_import_obj.filename = filename
                 anki_import_obj.save()
 
                 for word in found_words:
