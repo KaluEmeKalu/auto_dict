@@ -41,7 +41,7 @@ import zipfile
 from imagekit.models import ImageSpecField, ProcessedImageField
 from imagekit.processors import ResizeToFill, Transpose
 from bs4 import BeautifulSoup as BS
-import datetime
+from datetime import datetime
 try:
     from StringIO import StringIO as BytesIO
 except ImportError:
@@ -413,11 +413,23 @@ class SchoolClass(Model):
                          related_name="teacher_classes")
     students = ManyToManyField(
         User, blank=True, related_name="student_classes")
-    course = ForeignKey('Course', null=True, blank=True)
+    course = ForeignKey('Course', null=True, blank=True, related_name="school_classes")
     timestamp = DateTimeField(
         editable=False, auto_now_add=True, auto_now=False)
     private = BooleanField(default=False, blank=True)
     updated = models.DateTimeField(auto_now=True, blank=True, null=True)
+
+    def get_name(self):
+        """
+        Get's name + with Teacher's Name if there's a teacher
+        i.e., Computer Science With Uche Kalu
+        """
+        if self.teacher:
+            teacher_name = self.teacher.first_name if self.teacher.first_name \
+                else self.teacher.username
+            return "{} with {}".format(self.name, teacher_name)
+        else:
+            return self.name
 
     def get_published_steps(self):
         """ 
@@ -836,6 +848,15 @@ class Video(Model):
     watched = BooleanField(default=False)
     has_achievement = BooleanField(default=False)
 
+
+    def get_timestamp(self, pretty=False):
+
+        if pretty:
+            return self.timestamp.strftime("%Y-%m-%d %H:%M:%S")
+
+        return self.timestamp.strftime("%Y-%m-%d_%H:%M:%S")
+
+
     def is_watched(self, user_id):
         user = User.objects.get(pk=user_id)
         try:
@@ -882,7 +903,7 @@ class Video(Model):
         try:
             name = '{} Submitted Image on {}'.format(self.name, self.timestamp)
         except:
-            name = 'Submitted Image on {}'.format(self.timestamp)
+            name = 'Submitted Image on {}'.format(self.get_timestamp(pretty=True))
         return name
 
 
@@ -1191,9 +1212,18 @@ class Image(models.Model):
                               auto_now=False, null=True, blank=True)
     updated = models.DateTimeField(auto_now=True, blank=True, null=True)
 
+
+    def get_timestamp(self, pretty=False):
+
+        if pretty:
+            return self.timestamp.strftime("%Y-%m-%d %H:%M:%S")
+
+        return self.timestamp.strftime("%Y-%m-%d_%H:%M:%S")
+
     def __str__(self):
 
-        return '{} {}'.format(self.my_namespace, self.timestamp)
+        return '{} {}'.format(self.my_namespace,
+                              self.get_timestamp(pretty=True))
 
     def time_ago(self):
         return naturaltime(self.timestamp)

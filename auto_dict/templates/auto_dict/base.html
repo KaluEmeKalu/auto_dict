@@ -74,15 +74,15 @@ Hello {{user.username}}!
                         <a href=""   data-toggle="modal" data-target="#make_class"><i class="fa fa-bar-chart-o fa-3x"></i> Make Class</a>
                     </li>
 
-                    {% for school_class in school_classes %}
+                    {% for course in courses %}
                     <li>
-                        <a href="#"><i class="fa fa-sitemap fa-3x"></i>{{ school_class.name }} with {{ school_class.teacher.last_name}}  <span class="fa arrow"></span></a>
+                        <a href="#"><i class="fa fa-sitemap fa-3x"></i>{{ course.name }} <span class="fa arrow"></span></a>
                         <ul class="nav nav-second-level">
 
                             <!-- Loop through Class Steps -->
-                            {% for step in school_class.get_published_steps %}
+                            {% for school_class in course.school_classes.all %}
                             <li>
-                                <a href="{{step.url}}">{{step.name}}<span class="fa arrow"></span></a>
+                                <a href="">{{school_class.get_name}}<span class="fa arrow"></span></a>
                                 
                                 
                                 <ul class="nav nav-third-level">
@@ -93,16 +93,19 @@ Hello {{user.username}}!
                                     </li>
                                     {% endif %}
 
+
+                                    {% for step in school_class.get_published_steps %}
                                     <li>
-                                        <a href="/class/{{school_class.id}}">Dashboard</a>
-                                    </li>    
+                                        <a href="/class/{{school_class.id}}">{{step.name}}</a>
+                                    </li>
+                                    {% endfor %}   
 
                                 </ul>
                                 
                                
                             </li>
                             {% endfor %}
-                            <!--End Loop through Class Steps -->
+                            <!--End Loop through school Classes -->
 
 
                         </ul>

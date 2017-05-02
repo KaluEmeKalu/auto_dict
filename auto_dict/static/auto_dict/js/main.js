@@ -206,6 +206,9 @@ function saveAnswer(answer_id, exam_paper_id, question_id) {
             console.log(json.the_status);
             console.log("Shoudl say great!!!");
             $( "#saved_answer" + question_id ).html(json.saved_answer);
+            var selector_string = "#question" + question_id + " #answer" + json.saved_answer_id;
+            $( selector_string ).addClass('label label-success');
+            console.log(selector_string);
             console.log(json.saved_answer);
             console.log(json.error);
         },

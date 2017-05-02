@@ -407,9 +407,11 @@ def save_answer(request):
             selection_obj.save()
             print("Created new selected! " * 50)
 
-        save_answer = selection_obj.answer.answer
+        saved_answer = selection_obj.answer.answer
+        saved_answer_id = selection_obj.answer.id
         response_data = {'the_status': "all is great!",
-                         'saved_answer': save_answer}
+                         'saved_answer_id': saved_answer_id,
+                         'saved_answer': saved_answer}
 
         # except:
         #     response_data['result'] = 'Oh No!'

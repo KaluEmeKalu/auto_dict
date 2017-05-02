@@ -28,7 +28,7 @@
                        <input type="hidden" value="save_answer/" id="save_answer_url" name="answer_url">
                        {% csrf_token %}
                        {% for question in exam.get_questions %}
-                        <div class="panel panel-default">
+                        <div id="question{{question.id}}" class="panel panel-default">
                             <div class="panel-heading">
                             {{forloop.counter}}) {{question.question}}
 
@@ -56,7 +56,7 @@
                             <div class="answer_body panel-body">
 
                                 {% for answer in question.get_answers %}
-                                   <span class="my_pointer" onclick="saveAnswer({{answer.id}}, {{exam_paper.id}}, {{question.id}})" id="answer{{answer.answer.id}}">
+                                   <span class="my_pointer" onclick="saveAnswer({{answer.id}}, {{exam_paper.id}}, {{question.id}})" id="answer{{answer.id}}">
                                    {{forloop.counter | to_char}}) - {{answer.answer}}
                                    </span></br></br>
                                 {% endfor %}
