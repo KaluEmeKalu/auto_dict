@@ -80,7 +80,7 @@ Hello {{user.username}}!
                         <ul class="nav nav-second-level">
 
                             <!-- Loop through Class Steps -->
-                            {% for step in school_class.steps.all %}
+                            {% for step in school_class.get_published_steps %}
                             <li>
                                 <a href="{{step.url}}">{{step.name}}<span class="fa arrow"></span></a>
                                 

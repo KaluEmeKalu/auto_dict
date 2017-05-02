@@ -21,13 +21,13 @@
                   
 
 
-                   {% if exam.questions.all %}
+                   {% if exam.get_questions %}
                      <!-- a hidden input to tell saveAnswer function in main.js
                           what the url to send answers to -->
                      <span id="save_answer_span" >
                        <input type="hidden" value="save_answer/" id="save_answer_url" name="answer_url">
                        {% csrf_token %}
-                       {% for question in exam.questions.all %}
+                       {% for question in exam.get_questions %}
                         <div class="panel panel-default">
                             <div class="panel-heading">
                             {{forloop.counter}}) {{question.question}}
@@ -35,7 +35,7 @@
                             <!-- Selected Answer is showed here -->
                             <!-- I added comment tags to get rid of white spaces between django tags. stupid, but eh. -->
                             <span id="saved_answer{{question.id}}" class="label label-success"><!-- 
-                             -->{% for answer in question.answers.all %}<!-- 
+                             -->{% for answer in question.get_answers %}<!-- 
                                -->{% for selection in exam_paper.selections.all %}<!-- 
                                -->{% if answer == selection.answer %}<!-- 
                                -->{{ answer.answer }}<!-- 
@@ -55,7 +55,7 @@
                                  of main.js. -->
                             <div class="answer_body panel-body">
 
-                                {% for answer in question.answers.all %}
+                                {% for answer in question.get_answers %}
                                    <span class="my_pointer" onclick="saveAnswer({{answer.id}}, {{exam_paper.id}}, {{question.id}})" id="answer{{answer.answer.id}}">
                                    {{forloop.counter | to_char}}) - {{answer.answer}}
                                    </span></br></br>

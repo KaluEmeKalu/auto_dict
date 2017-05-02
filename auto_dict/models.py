@@ -283,6 +283,10 @@ class Question(Model):
     def __str__(self):
         return self.question
 
+    def get_answers(self):
+        return self.answers.all().order_by('?')
+
+
 
 class Answer(Model):
     answer = TextField(null=True, blank=True)
@@ -296,6 +300,8 @@ class Answer(Model):
         return self.answer
 
 
+
+
 class Exam(Model):
     created_by = ForeignKey(User, blank=True, null=True, related_name='exams')
     timestamp = DateTimeField(editable=False, auto_now_add=True,
@@ -304,6 +310,10 @@ class Exam(Model):
     updated = models.DateTimeField(auto_now=True, blank=True, null=True)
     school_class = ForeignKey('SchoolClass', blank=True,
                               null=True, related_name="exams")
+
+    def get_questions(self):
+        """ Gets questions in random order"""
+        return self.questions.all().order_by('?')
 
     def __str__(self):
         return self.name
@@ -408,6 +418,12 @@ class SchoolClass(Model):
         editable=False, auto_now_add=True, auto_now=False)
     private = BooleanField(default=False, blank=True)
     updated = models.DateTimeField(auto_now=True, blank=True, null=True)
+
+    def get_published_steps(self):
+        """ 
+        Gets ONLY PUBLISHED steps
+        """
+        return self.steps.filter(is_published=True)
 
     def get_percentage_completed(self, user):
         """
@@ -892,6 +908,7 @@ class Step(Model):
     timestamp = DateTimeField(
         editable=False, auto_now_add=True, auto_now=False)
     updated = models.DateTimeField(auto_now=True, blank=True, null=True)
+    is_published = models.BooleanField(default=False)
 
     def get_ratio_watched(self):
         """
@@ -1169,14 +1186,14 @@ class Image(models.Model):
         format='JPEG',
         options={'quality': 60})
     my_namespace = CharField(
-        default="Image", max_length=128, null=True, blank=True)
+        default="", max_length=128, null=True, blank=True)
     timestamp = DateTimeField(editable=False, auto_now_add=True,
                               auto_now=False, null=True, blank=True)
     updated = models.DateTimeField(auto_now=True, blank=True, null=True)
 
     def __str__(self):
 
-        return 'Submitted Image on {}'.format(self.timestamp)
+        return '{} {}'.format(self.my_namespace, self.timestamp)
 
     def time_ago(self):
         return naturaltime(self.timestamp)

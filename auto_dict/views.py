@@ -450,7 +450,10 @@ def exam(request, exam_id, turn_in=False):
         exam_paper = ExamPaper(exam_taker=exam_taker, exam=exam)
         exam_paper.save()
 
-    context = {'exam': exam, 'exam_paper': exam_paper}
+    # random order
+    questions = exam.questions.all().order_by('?')
+
+    context = {'exam': exam, 'exam_paper': exam_paper, 'questions': questions}
 
     if request.method == 'POST':
         pass
@@ -763,6 +766,7 @@ class RegisterView(View):
                     return redirect('auto_dict:index')
 
         return render(request, self.template_name, {'form': form})
+
 
 
 @login_required(login_url='/auto_dict/login/')

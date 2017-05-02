@@ -33,7 +33,7 @@
                             <ul class="nav nav-pills">
                                 
 
-                                {% for step in school_class.steps.all %}
+                                {% for step in school_class.get_published_steps %}
 
                                   <!-- If first item add "active" class to make link active -->
                                   <li class="{% if forloop.first %}active{% endif %}"><a href="#step{{step.id}}" data-toggle="tab">Lesson {{ forloop.counter }}) {{step.name}}</a>
@@ -49,7 +49,7 @@
                             <div class="tab-content">
 
                                 <!-- For Loop for Steps -->
-                                {% for step in school_class.steps.all %}
+                                {% for step in school_class.get_published_steps %}
                                 <!-- Add active in classes if first in forloop -->
                                 <div class="tab-pane fade {% if forloop.first %}active in{% endif %}" id="step{{step.id}}">
                                     <h3>Overview</h3>
