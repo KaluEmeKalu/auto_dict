@@ -56,7 +56,7 @@
                             <div class="answer_body panel-body">
 
                                 {% for answer in question.get_answers %}
-                                   <span class="my_pointer" onclick="saveAnswer({{answer.id}}, {{exam_paper.id}}, {{question.id}})" id="answer{{answer.id}}">
+                                   <span class="an_answer my_pointer" onclick="saveAnswer({{answer.id}}, {{exam_paper.id}}, {{question.id}})" id="answer{{answer.id}}">
                                    {{forloop.counter | to_char}}) - {{answer.answer}}
                                    </span></br></br>
                                 {% endfor %}
