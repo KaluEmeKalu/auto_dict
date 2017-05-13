@@ -578,7 +578,7 @@ class Word(Model):
     created_by = ForeignKey(User, blank=True, null=True)
     word = CharField(max_length=160, default="No Word Entry")
     definition = TextField(default="No Definition Entry")
-    sound_path = TextField(default="No Audio Path Entry")
+    sound_path = TextField(default="")
     example = TextField(default="No Example Entry")
     origin = TextField(default="No Origin Entry")
     part_of_speech = TextField(
@@ -716,7 +716,8 @@ class Word(Model):
         try:
             self.sound_path = soup.sound.text
         except:
-            self.sound_path = "No Sound Path"
+            # self.sound_path = "No Sound Path"
+            pass
 
         # get other_usages
         try:

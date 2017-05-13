@@ -493,7 +493,7 @@ def word_search(request, anki_import=True):
                 # refactor this!!
                 anki_header = Word.objects.first().anki_header()
                 content = ''
-                content += anki_header
+                # content += anki_header
                 filename = request.FILES['file'].name
                 anki_import_obj = AnkiImportTextFile()
                 anki_import_obj.filename = filename
@@ -525,7 +525,7 @@ def word_search(request, anki_import=True):
                     the_file = File(f)
                     anki_import_obj.title = datetime_string
                     anki_import_obj.file.save(
-                        '{}-{}'.format(filename, datetime_string), the_file
+                        '{}-{}.txt'.format(filename, datetime_string), the_file
                     )
                     anki_import_obj.save()
 
